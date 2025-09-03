@@ -8,6 +8,10 @@ if (method_exists(Dotenv::class, 'bootEnv')) {
     (new Dotenv())->bootEnv(dirname(__DIR__).'/.env');
 }
 
-if ($_SERVER['APP_DEBUG']) {
+// Forcer une base SQLite fichier pour garder le schéma pendant tout le processus
+$_ENV['DATABASE_URL'] = 'sqlite:///' . dirname(__DIR__) . '/var/test.db';
+$_SERVER['DATABASE_URL'] = $_ENV['DATABASE_URL'];
+
+if (!empty($_SERVER['APP_DEBUG'])) {
     umask(0000);
 }

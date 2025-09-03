@@ -1,10 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/11.5/phpunit.xsd"
-         bootstrap="vendor/autoload.php"
+         bootstrap="tests/bootstrap.php"
          colors="true"
          cacheDirectory="var/.phpunit.cache"
 >
+    <php>
+        <env name="KERNEL_CLASS" value="App\\Kernel"/>
+        <!-- Utiliser la même URL mais suffix test défini dans doctrine when@test -->
+        <env name="APP_ENV" value="test"/>
+    <env name="DATABASE_URL" value="sqlite:///%kernel.project_dir%/var/test.db"/>
+    </php>
     <testsuites>
         <testsuite name="Project Test Suite">
             <directory>tests</directory>

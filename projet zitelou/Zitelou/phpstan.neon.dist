@@ -1,0 +1,8 @@
+parameters:
+	level: 3
+	paths:
+		- src
+	tmpDir: var/cache/phpstan
+	inferPrivatePropertyTypeFromConstructor: true
+	reportUnmatchedIgnoredErrors: true
+	treatPhpDocTypesAsCertain: false

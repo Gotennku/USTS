@@ -94,7 +94,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function onPrePersist(): void
     {
         $now = new \DateTimeImmutable();
-        $this->createdAt = $this->createdAt ?? $now;
         $this->updatedAt = new \DateTime();
     }
 
