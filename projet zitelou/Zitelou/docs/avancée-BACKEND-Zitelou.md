@@ -1,13 +1,15 @@
-# Revue Projet – 3 septembre 2025 18h10
+# Revue Projet – 3 septembre 2025 16h25
 
 ## 1. Résumé Exécutif
 
 Application backend Symfony 7.3 (API Platform) pour gestion utilisateurs, abonnements, paiements,
 journalisation et sécurité JWT. Base technique stabilisée (containers Docker), premières entités
 créées. Pipeline qualité renforcé : 20 tests verts (69 assertions) après ajout test fonctionnel
-Stripe (création subscription via webhook simulé). PHPStan niveau 4 (0 erreurs) stable. Prochaine
-phase : activer driver de couverture (Xdebug/PCOV), monter niveaux 5+, compléter scénarios Stripe
-(payments invoices, idempotence complète), introduire services métier & tests API bout‑à‑bout.
+Stripe (création subscription via webhook simulé). PHPStan niveau 4 (0 erreurs) stable. Couverture
+maintenant activée via Xdebug (Classes 64.86% / Méthodes 89.87% / Lignes 66.96%). Prochaine phase :
+resserrer la couverture sur logique métier (réduire poids tests purement réflexifs), monter Stan
+aux niveaux 5+, compléter scénarios Stripe (invoices success/failure, annulation, idempotence
+complète), introduire services métier & tests API bout‑à‑bout.
 
 ## 2. Pile & Architecture
 
@@ -34,21 +36,23 @@ agrégations) encore à implémenter.
 
 ## 4. Qualité & Tests
 
-- Tests: 19 tests / 66 assertions (persistance, relations, transitions simples + couverture
-  généralisée via réflexion). Pas encore de driver couverture actif (warning PHPUnit) → activer
-  Xdebug ou PCOV pour chiffres réels.
+- Tests: 20 tests / 69 assertions (persistance, relations, transitions simples + test fonctionnel
+  Stripe). Couverture active via Xdebug: Classes 64.86% | Méthodes 89.87% | Lignes 66.96%.
 - Mutation testing (Infection): configuré (seuils 80/85) – pas encore exécuté sur un périmètre large
 - Checklist revue: `docs/REVIEW_CHECKLIST.md` (doit être utilisée dans chaque PR)
 - Analyse statique: PHPStan niveau 4 OK (0 erreurs). Nullabilité harmonisée en rendant certaines
   colonnes DB nullable (à confirmer via migration) + ajout generics Collection. Cible prochaine:
   niveaux 5→6 puis niveau max avec éventuellement baseline si nécessaire.
 
-### Couverture (à activer)
+### Couverture (activée)
 
-Driver de couverture toujours non activé (Xdebug/PCOV absent à l'exécution de la suite → aucune
-stat actuelle fiable). Anciennes mesures locales (avant refactor Stripe) montraient une couverture
-élevée artificiellement (tests réflexifs getters/setters). Objectif : réactiver collecte puis
-réorienter vers tests comportement métier (abonnements, paiements, expiration, sécurité).
+Collecte active (Xdebug). Le niveau actuel inclut encore une part de tests réflexifs qui gonflent
+les métriques méthodes. Priorités:
+1. Ajouter tests comportement pour invoices (succès/échec) & annulation subscription.
+2. Introduire tests idempotence (replay d'event stripe).
+3. Migrer montants Payment -> int (cents) puis ajuster tests.
+4. Supprimer / réduire tests purement getters/setters si présents pour refléter valeur réelle.
+5. Ajouter tests API bout‑à‑bout (statistiques couverture lignes plus représentative usages).
 
 ### Migration nullabilité (17h15)
 
@@ -68,7 +72,7 @@ Migration `Version20250903151723` générée et appliquée : colonnes *foreign k
 - Points à prévoir: rotation des clés, durées tokens, rate limiting, audit endpoints sensibles,
   intégration future d’un WAF ou reverse proxy.
 
-## 7. Stripe – État Intégration (ajout 18h10)
+## 7. Stripe – État Intégration (mise à jour 16h25)
 
 Implémenté :
 - Client `StripeClientFactory` (version API figée 2024-06-20)
@@ -77,7 +81,7 @@ Implémenté :
 - Métadonnées user_id / plan_id propagées dans `subscription_data`
 - Création Subscription & Payment, historisation (SubscriptionHistory), logging (StripeWebhookLog)
 
-Lacunes clés :
+Lacunes clés (inchangé + précisions) :
 - Idempotence par event.id absente (risque de duplications si retry Stripe)
 - Status intermédiaires Stripe (incomplete, past_due, trialing) non mappés
 - Montants Payment en float (précision) – préférer int (cents)
@@ -86,13 +90,13 @@ Lacunes clés :
 - Pas de synchronisation auto plans ↔ prices Stripe
 - Handler public exposé directement (à restreindre en prod)
 
-Priorité prochaine itération : idempotence + tests invoices + migration montant en cents.
+Priorité prochaine itération : idempotence (event.id) + tests invoices + migration montant en cents.
 
 ## 8. Dette & Risques
 
 | Zone                           | Risque                   | Impact | Mitigation courte                                   | Mitigation long terme         |
 | ------------------------------ | ------------------------ | ------ | --------------------------------------------------- | ----------------------------- |
-| Couverture réelle inactive (driver manquant) | Régressions silencieuses | Élevé  | Installer driver (Xdebug / PCOV) | Tests métier ciblés + suppression tests réflexifs |
+| Couverture réelle partiellement représentative | Faux sentiment de sécurité | Moyen  | Réduire tests réflexifs, ajouter scénarios métier | Pyramide tests + mutation testing |
 | Absence services métier        | Couplage contrôleurs/ORM | Moyen  | Introduire services Application                     | Strate Domain + Value Objects |
 | Idempotence webhooks incomplète| Replay Stripe dupliqué   | Moyen  | Stocker event.id + contrainte unique                | File asynchrone + reprocessing |
 | Float pour montants            | Erreurs arrondi          | Moyen  | Migrer vers int cents                               | Value Object Money             |
@@ -104,12 +108,12 @@ Priorité prochaine itération : idempotence + tests invoices + migration montan
 
 ## 8. Prochaines Priorités (proposition sprint)
 
-1. Activer driver couverture (Xdebug déjà partiellement configuré, vérifier extension active / sinon PCOV)
-2. Monter PHPStan niveaux 5→6 (collections, generics, règles additionnelles doctrine)
-3. Générer migration pour refléter colonnes désormais nullable (relations ManyToOne/OneToOne)
-4. Services métier (SubscriptionService, PaymentService) + tests transitions complexes
+1. Normaliser couverture (tests métier invoices / idempotence / annulation)
+2. Monter PHPStan niveau 5→6 (collections, generics, règles doctrine supplémentaires)
+3. Migration montants Payment en int (cents) + adaptation entité & tests
+4. Services métier (SubscriptionService, PaymentService) + transitions complexes (upgrade/downgrade)
 5. Tests API (CRUD + scénarios abonnement end-to-end)
-6. Pipeline CI (tests + stan + couverture) puis mutation progressive
+6. Pipeline CI (tests + stan + couverture HTML + badge) puis mutation progressive
 7. Événements domaine + audit automatique / durcir sécurité (CORS, headers, rotation JWT)
 
 ## 9. Commandes Utiles (Dev & Qualité)
@@ -197,23 +201,23 @@ Pour rendre le code plus modulable:
 
 ## 11. KPIs de Qualité Cibles (suggestion)
 
-| KPI                          | Actuel | Cible Phase 1 | Cible Phase 2                    |
-| ---------------------------- | ------ | ------------- | -------------------------------- |
-| Couverture lignes            | ~3%    | 40%           | 70%                              |
-| Couverture classes critiques | 0%     | 60%           | 90%                              |
-| Mutation Score (MSI)         | n/a    | 50%           | 80%                              |
-| Temps build CI               | n/a    | <5 min        | <8 min (avec mutation partielle) |
+| KPI                          | Actuel (Xdebug) | Cible Phase 1 | Cible Phase 2                    |
+| ---------------------------- | -------------- | ------------- | -------------------------------- |
+| Couverture lignes            | 66.96%         | 70%           | 80%                              |
+| Couverture classes critiques | 64.86%         | 75%           | 90%                              |
+| Mutation Score (MSI)         | n/a            | 50%           | 80%                              |
+| Temps build CI               | n/a            | <5 min        | <8 min (avec mutation partielle) |
 
 ## 12. Actions Immédiates Recommandées
 
-1. Activer Xdebug/PCOV dans environnement test (résoudre warning "No code coverage driver available")
+1. Couverture qualitative: ajouter scénarios invoices / idempotence / annulation
 2. Monter PHPStan niveau 5 puis 6 – script `composer stan`
-3. Générer / appliquer migration pour nouvelles nullabilités relationnelles
-4. Introduire services métier + tests transitions abonnement avancées (annulation, expiration, renouvellement)
-5. Définir conventions commit / branche (Conventional Commits)
-6. Pipeline CI (install cache, phpunit, coverage, phpstan) avant mutation
+3. Migration montants Payment (float -> int cents) + adaptation tests & conversions Stripe
+4. Services métier + transitions abonnement (annulation, expiration, renouvellement)
+5. Définitions conventions commit / branche (Conventional Commits)
+6. Pipeline CI (cache deps, phpunit couverture HTML, phpstan, future infection partielle)
 7. Baseline PHPStan uniquement si blocage montée niveau max
 
 ---
 
-Document mis à jour le 3 septembre 2025 18h10.
+Document mis à jour le 3 septembre 2025 16h25.
