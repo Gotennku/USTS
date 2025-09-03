@@ -13,7 +13,7 @@ class GeoLocation
     private ?int $id = null;
 
     #[ORM\ManyToOne(inversedBy: 'geoLocations', targetEntity: Child::class)]
-    #[ORM\JoinColumn(nullable: false)]
+    #[ORM\JoinColumn(nullable: true)]
     private ?Child $child = null;
 
     #[ORM\Column(type: 'float')]

@@ -30,7 +30,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private ?int $id = null;
 
     #[ORM\Column(length: 180, unique: true)]
-    private ?string $email = null;
+    private string $email = '';
 
     #[ORM\Column(type: 'json')]
     private array $roles = [];
@@ -53,6 +53,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(name: 'updated_at', type: 'datetime', options: ['default' => 'CURRENT_TIMESTAMP'])]
     private \DateTime $updatedAt;
 
+    /** @var Collection<int, Child> */
     #[ORM\OneToMany(mappedBy: 'parent', targetEntity: Child::class, orphanRemoval: true)]
     private Collection $children;
 
@@ -62,18 +63,23 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\OneToOne(mappedBy: 'user', targetEntity: Subscription::class, cascade: ['persist', 'remove'])]
     private ?Subscription $subscription = null;
 
+    /** @var Collection<int, UserLog> */
     #[ORM\OneToMany(mappedBy: 'user', targetEntity: UserLog::class, orphanRemoval: true)]
     private Collection $userLogs;
 
+    /** @var Collection<int, AuthToken> */
     #[ORM\OneToMany(mappedBy: 'user', targetEntity: AuthToken::class, orphanRemoval: true)]
     private Collection $authTokens;
 
+    /** @var Collection<int, PasswordResetToken> */
     #[ORM\OneToMany(mappedBy: 'user', targetEntity: PasswordResetToken::class, orphanRemoval: true)]
     private Collection $passwordResetTokens;
 
+    /** @var Collection<int, AdminLog> */
     #[ORM\OneToMany(mappedBy: 'admin', targetEntity: AdminLog::class, orphanRemoval: true)]
     private Collection $adminLogs;
 
+    /** @var Collection<int, BanList> */
     #[ORM\OneToMany(mappedBy: 'user', targetEntity: BanList::class, orphanRemoval: true)]
     private Collection $banLists;
 
@@ -105,10 +111,10 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function getId(): ?int { return $this->id; }
 
-    public function getEmail(): ?string { return $this->email; }
+    public function getEmail(): string { return $this->email; }
     public function setEmail(string $email): self { $this->email = $email; return $this; }
 
-    public function getUserIdentifier(): string { return (string) $this->email; }
+    public function getUserIdentifier(): string { return $this->email; }
 
     /** @return string[] */
     public function getRoles(): array

@@ -13,7 +13,7 @@ class ParentalSettings
     private ?int $id = null;
 
     #[ORM\OneToOne(inversedBy: 'parentalSettings', targetEntity: User::class)]
-    #[ORM\JoinColumn(nullable: false)]
+    #[ORM\JoinColumn(nullable: true)]
     private ?User $user = null;
 
     #[ORM\Column(length: 10)]

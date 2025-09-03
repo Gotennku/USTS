@@ -14,23 +14,29 @@ class Child
     #[ORM\Column(type: 'integer')]
         private ?int $id = null;
 
-        #[ORM\OneToMany(mappedBy: 'child', targetEntity: AuthorizedContact::class, orphanRemoval: true)]
-        private $authorizedContacts;
+    #[ORM\OneToMany(mappedBy: 'child', targetEntity: AuthorizedContact::class, orphanRemoval: true)]
+    /** @var \Doctrine\Common\Collections\Collection<int, AuthorizedContact> */
+    private $authorizedContacts;
 
-        #[ORM\OneToMany(mappedBy: 'child', targetEntity: AuthorizedApp::class, orphanRemoval: true)]
-        private $authorizedApps;
+    #[ORM\OneToMany(mappedBy: 'child', targetEntity: AuthorizedApp::class, orphanRemoval: true)]
+    /** @var \Doctrine\Common\Collections\Collection<int, AuthorizedApp> */
+    private $authorizedApps;
 
-        #[ORM\OneToMany(mappedBy: 'child', targetEntity: FeatureAccess::class, orphanRemoval: true)]
-        private $featureAccesses;
+    #[ORM\OneToMany(mappedBy: 'child', targetEntity: FeatureAccess::class, orphanRemoval: true)]
+    /** @var \Doctrine\Common\Collections\Collection<int, FeatureAccess> */
+    private $featureAccesses;
 
-        #[ORM\OneToMany(mappedBy: 'child', targetEntity: EmergencyContact::class, orphanRemoval: true)]
-        private $emergencyContacts;
+    #[ORM\OneToMany(mappedBy: 'child', targetEntity: EmergencyContact::class, orphanRemoval: true)]
+    /** @var \Doctrine\Common\Collections\Collection<int, EmergencyContact> */
+    private $emergencyContacts;
 
-        #[ORM\OneToMany(mappedBy: 'child', targetEntity: EmergencyCall::class, orphanRemoval: true)]
-        private $emergencyCalls;
+    #[ORM\OneToMany(mappedBy: 'child', targetEntity: EmergencyCall::class, orphanRemoval: true)]
+    /** @var \Doctrine\Common\Collections\Collection<int, EmergencyCall> */
+    private $emergencyCalls;
 
-        #[ORM\OneToMany(mappedBy: 'child', targetEntity: GeoLocation::class, orphanRemoval: true)]
-        private $geoLocations;
+    #[ORM\OneToMany(mappedBy: 'child', targetEntity: GeoLocation::class, orphanRemoval: true)]
+    /** @var \Doctrine\Common\Collections\Collection<int, GeoLocation> */
+    private $geoLocations;
 
         public function __construct()
         {
@@ -95,7 +101,7 @@ class Child
         { if($this->geoLocations->removeElement($g) && $g->getChild()===$this){ $g->setChild(null);} return $this; }
 
     #[ORM\ManyToOne(targetEntity: User::class, inversedBy: 'children')]
-    #[ORM\JoinColumn(nullable: false)]
+    #[ORM\JoinColumn(nullable: true)]
     private ?User $parent = null;
 
     #[ORM\Column(length: 100)]

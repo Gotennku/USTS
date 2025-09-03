@@ -15,7 +15,7 @@ class SubscriptionHistory
     private ?int $id = null;
 
     #[ORM\ManyToOne(inversedBy: 'historyEntries', targetEntity: Subscription::class)]
-    #[ORM\JoinColumn(nullable: false)]
+    #[ORM\JoinColumn(nullable: true)]
     private ?Subscription $subscription = null;
 
     #[ORM\Column(enumType: SubscriptionStatus::class)]

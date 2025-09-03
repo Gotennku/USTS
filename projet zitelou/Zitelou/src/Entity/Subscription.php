@@ -31,7 +31,7 @@ class Subscription
     private ?int $id = null;
 
     #[ORM\OneToOne(inversedBy: 'subscription', targetEntity: User::class)]
-    #[ORM\JoinColumn(nullable: false)]
+    #[ORM\JoinColumn(nullable: true)]
     #[Groups(['subscription:read','subscription:write'])]
     private ?User $user = null;
 
@@ -54,12 +54,15 @@ class Subscription
     #[ORM\ManyToOne(inversedBy: 'subscriptions', targetEntity: SubscriptionPlan::class)]
     private ?SubscriptionPlan $plan = null;
 
+    /** @var Collection<int, Payment> */
     #[ORM\OneToMany(mappedBy: 'subscription', targetEntity: Payment::class, orphanRemoval: false)]
     private Collection $payments;
 
+    /** @var Collection<int, SubscriptionHistory> */
     #[ORM\OneToMany(mappedBy: 'subscription', targetEntity: SubscriptionHistory::class, orphanRemoval: true)]
     private Collection $historyEntries;
 
+    /** @var Collection<int, StripeWebhookLog> */
     #[ORM\OneToMany(mappedBy: 'subscription', targetEntity: StripeWebhookLog::class)]
     private Collection $webhookLogs;
 

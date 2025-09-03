@@ -27,8 +27,9 @@ class SubscriptionPlan
     #[ORM\Column(type: 'text', nullable: true)]
     private ?string $description = null;
 
+    /** @var \Doctrine\Common\Collections\Collection<int, Subscription> */
     #[ORM\OneToMany(mappedBy: 'plan', targetEntity: Subscription::class)]
-    private $subscriptions;
+    private \Doctrine\Common\Collections\Collection $subscriptions;
 
     public function __construct()
     { $this->subscriptions = new \Doctrine\Common\Collections\ArrayCollection(); }
@@ -45,5 +46,5 @@ class SubscriptionPlan
     public function getDescription(): ?string { return $this->description; }
     public function setDescription(?string $d): self { $this->description = $d; return $this; }
     /** @return \Doctrine\Common\Collections\Collection<int, Subscription> */
-    public function getSubscriptions() { return $this->subscriptions; }
+    public function getSubscriptions(): \Doctrine\Common\Collections\Collection { return $this->subscriptions; }
 }

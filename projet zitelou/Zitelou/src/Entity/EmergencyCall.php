@@ -14,7 +14,7 @@ class EmergencyCall
     private ?int $id = null;
 
     #[ORM\ManyToOne(inversedBy: 'emergencyCalls', targetEntity: Child::class)]
-    #[ORM\JoinColumn(nullable: false)]
+    #[ORM\JoinColumn(nullable: true)]
     private ?Child $child = null;
 
     #[ORM\Column(type: 'datetime_immutable')]

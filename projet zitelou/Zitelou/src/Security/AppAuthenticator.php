@@ -50,7 +50,8 @@ class AppAuthenticator extends AbstractLoginFormAuthenticator
         }
 
         $user = $token->getUser();
-        if (is_object($user) && method_exists($user, 'getRoles') && in_array('ROLE_ADMIN', $user->getRoles(), true)) {
+        // getRoles() est garanti par UserInterface
+        if (is_object($user) && in_array('ROLE_ADMIN', $user->getRoles(), true)) {
             return new RedirectResponse($this->urlGenerator->generate('admin_dashboard'));
         }
 

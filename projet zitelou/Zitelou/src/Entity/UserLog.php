@@ -13,7 +13,7 @@ class UserLog
     private ?int $id = null;
 
     #[ORM\ManyToOne(inversedBy: 'userLogs', targetEntity: User::class)]
-    #[ORM\JoinColumn(nullable: false)]
+    #[ORM\JoinColumn(nullable: true)]
     private ?User $user = null;
 
     #[ORM\Column(length: 45)]

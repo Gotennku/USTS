@@ -14,7 +14,7 @@ class FeatureAccess
     private ?int $id = null;
 
     #[ORM\ManyToOne(targetEntity: Child::class)]
-    #[ORM\JoinColumn(nullable: false)]
+    #[ORM\JoinColumn(nullable: true)]
     private ?Child $child = null;
 
     #[ORM\Column(length: 100)]

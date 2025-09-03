@@ -14,7 +14,7 @@ class AdminLog
     private ?int $id = null;
 
     #[ORM\ManyToOne(targetEntity: User::class)]
-    #[ORM\JoinColumn(nullable: false)]
+    #[ORM\JoinColumn(nullable: true)]
     private ?User $admin = null;
 
     #[ORM\Column(type: 'string', length: 255)]

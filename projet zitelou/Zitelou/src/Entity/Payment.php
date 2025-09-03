@@ -16,7 +16,7 @@ class Payment
     private ?int $id = null;
 
     #[ORM\ManyToOne(targetEntity: Subscription::class, inversedBy: 'payments')]
-    #[ORM\JoinColumn(nullable: false)]
+    #[ORM\JoinColumn(nullable: true)]
     private ?Subscription $subscription = null;
 
     #[ORM\Column(type: 'float')]

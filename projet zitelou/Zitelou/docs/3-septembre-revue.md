@@ -1,13 +1,13 @@
-# Revue Projet – 3 septembre 2025 16h30
+# Revue Projet – 3 septembre 2025 17h05
 
 ## 1. Résumé Exécutif
 
 Application backend Symfony 7.3 (API Platform) pour gestion utilisateurs, abonnements, paiements,
 journalisation et sécurité JWT. Base technique stabilisée (containers Docker), premières entités
-créées. Pipeline qualité amorcé (18 tests couvrant persistance/relations, checklist revue, PHPStan
-niveau 3). Nouveau: test transitions d'état abonnement. Prochaine phase : enrichir couverture tests
-(services métier), monter niveaux d’analyse statique, introduire logique de domaine et sécuriser
-surface API.
+créées. Pipeline qualité renforcé : 19 tests verts (66 assertions), PHPStan monté proprement au
+niveau 4 (0 erreurs) après alignement nullabilité / types collections & email non-nullable.
+Prochaine phase : activer driver de couverture (Xdebug/PCOV manquant actuellement), pousser niveaux
+5+ PHPStan, introduire services métier & scénarios API.
 
 ## 2. Pile & Architecture
 
@@ -34,12 +34,25 @@ agrégations) encore à implémenter.
 
 ## 4. Qualité & Tests
 
-- Tests: 18 tests / 43 assertions (persistance, relations, transitions simples). Pas encore de
-  driver couverture actif (warning PHPUnit) → activer Xdebug/PCOV pour chiffres réels.
+- Tests: 19 tests / 66 assertions (persistance, relations, transitions simples + couverture
+  généralisée via réflexion). Pas encore de driver couverture actif (warning PHPUnit) → activer
+  Xdebug ou PCOV pour chiffres réels.
 - Mutation testing (Infection): configuré (seuils 80/85) – pas encore exécuté sur un périmètre large
 - Checklist revue: `docs/REVIEW_CHECKLIST.md` (doit être utilisée dans chaque PR)
-- Analyse statique: PHPStan niveau 3 OK (0 erreurs). Cible prochaine: niveaux 4→6 (typage collections,
-  nullabilité stricte) puis éventuellement baseline.
+- Analyse statique: PHPStan niveau 4 OK (0 erreurs). Nullabilité harmonisée en rendant certaines
+  colonnes DB nullable (à confirmer via migration) + ajout generics Collection. Cible prochaine:
+  niveaux 5→6 puis niveau max avec éventuellement baseline si nécessaire.
+
+### Couverture (Xdebug dans conteneur)
+
+Exécution: `docker compose run --rm php php -d xdebug.mode=coverage ./vendor/bin/phpunit --coverage-text`
+
+Résumé global:
+- Classes: 75.00% (24/32)
+- Méthodes: 94.85% (276/291)
+- Lignes: 89.53% (342/382)
+
+Entités principales: 100% lignes/méthodes sauf `User` (≈95.7% lignes, 90.91% méthodes). Les classes partielles sous 100% sont surtout `UserRepository` (méthode personnalisée non testée). La couverture élevée provient du test réflexif qui touche getters/setters — prioriser ensuite des tests orientés comportement (transitions, règles métier) pour solidifier la valeur réelle.
 - Manque: normalisation codestyle (PHP CS Fixer / PHPCS), tests intégration API.
 
 ## 5. Infrastructure & Exécution
@@ -59,7 +72,7 @@ agrégations) encore à implémenter.
 
 | Zone                           | Risque                   | Impact | Mitigation courte                                   | Mitigation long terme         |
 | ------------------------------ | ------------------------ | ------ | --------------------------------------------------- | ----------------------------- |
-| Faible couverture mesurée      | Régressions silencieuses | Élevé  | Activer couverture + ajouter tests services         | Approche TDD services métier  |
+| Faible couverture mesurée (driver manquant) | Régressions silencieuses | Élevé  | Installer driver (Xdebug déjà conditionnel / ajouter PCOV) | Approche TDD services métier  |
 | Absence services métier        | Couplage contrôleurs/ORM | Moyen  | Introduire services Application                     | Strate Domain + Value Objects |
 | Analyse statique partielle     | Types implicites restants| Moyen  | Monter niveaux 4→6 rapidement                      | Niveau strict + baseline CI   |
 | Couverture code inconnue       | Manque de métriques      | Moyen  | Activer Xdebug/PCOV                                 | Intégration CI reporting      |
@@ -68,13 +81,13 @@ agrégations) encore à implémenter.
 
 ## 8. Prochaines Priorités (proposition sprint)
 
-1. Activer driver couverture (Xdebug/PCOV) pour baseline réelle
-2. Monter PHPStan niveaux 4→6 (types collections, nullabilité)
-3. Services métier (SubscriptionService, PaymentService) + tests unitaires ciblant transitions
-4. Tests API (CRUD + scénarios d’abonnement complets)
-5. Événements domaine + logs d’audit automatiques
+1. Activer driver couverture (Xdebug déjà partiellement configuré, vérifier extension active / sinon PCOV)
+2. Monter PHPStan niveaux 5→6 (collections, generics, règles additionnelles doctrine)
+3. Générer migration pour refléter colonnes désormais nullable (relations ManyToOne/OneToOne)
+4. Services métier (SubscriptionService, PaymentService) + tests transitions complexes
+5. Tests API (CRUD + scénarios abonnement end-to-end)
 6. Pipeline CI (tests + stan + couverture) puis mutation progressive
-7. Durcir sécurité (CORS, headers, rotation clés JWT planifiée)
+7. Événements domaine + audit automatique / durcir sécurité (CORS, headers, rotation JWT)
 
 ## 9. Commandes Utiles (Dev & Qualité)
 
@@ -170,13 +183,14 @@ Pour rendre le code plus modulable:
 
 ## 12. Actions Immédiates Recommandées
 
-1. Activer Xdebug/PCOV dans environnement test pour produire couverture
-2. Monter PHPStan niveau 4 puis 5 – script `composer stan`
-3. Ajouter services + tests transitions abonnement (annulation, expiration, renouvellement)
-4. Définir conventions commit / branche (Conventional Commits)
-5. Pipeline CI (install cache, phpunit, coverage, phpstan) avant mutation
-6. Préparer baseline PHPStan uniquement si blocage montée strict
+1. Activer Xdebug/PCOV dans environnement test (résoudre warning "No code coverage driver available")
+2. Monter PHPStan niveau 5 puis 6 – script `composer stan`
+3. Générer / appliquer migration pour nouvelles nullabilités relationnelles
+4. Introduire services métier + tests transitions abonnement avancées (annulation, expiration, renouvellement)
+5. Définir conventions commit / branche (Conventional Commits)
+6. Pipeline CI (install cache, phpunit, coverage, phpstan) avant mutation
+7. Baseline PHPStan uniquement si blocage montée niveau max
 
 ---
 
-Document mis à jour le 3 septembre 2025 16h30.
+Document mis à jour le 3 septembre 2025 17h05.

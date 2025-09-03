@@ -13,7 +13,7 @@ class BanList
     private ?int $id = null;
 
     #[ORM\ManyToOne(inversedBy: 'banLists', targetEntity: User::class)]
-    #[ORM\JoinColumn(nullable: false)]
+    #[ORM\JoinColumn(nullable: true)]
     private ?User $user = null;
 
     #[ORM\Column(length: 255)]

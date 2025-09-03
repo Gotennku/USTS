@@ -13,7 +13,7 @@ class AuthToken
     private ?int $id = null;
 
     #[ORM\ManyToOne(inversedBy: 'authTokens', targetEntity: User::class)]
-    #[ORM\JoinColumn(nullable: false)]
+    #[ORM\JoinColumn(nullable: true)]
     private ?User $user = null;
 
     #[ORM\Column(length: 255, unique: true)]

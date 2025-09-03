@@ -13,7 +13,7 @@ class AuthorizedApp
     private ?int $id = null;
 
     #[ORM\ManyToOne(inversedBy: 'authorizedApps', targetEntity: Child::class)]
-    #[ORM\JoinColumn(nullable: false)]
+    #[ORM\JoinColumn(nullable: true)]
     private ?Child $child = null;
 
     #[ORM\Column(length: 150)]
