@@ -3,6 +3,7 @@ FROM php:8.3-cli
 ARG INSTALL_XDEBUG=0
 ENV APP_ENV=dev \
     XDEBUG_MODE=off
+# Activer la couverture: docker compose run --rm -e XDEBUG_MODE=coverage php composer coverage
 
 RUN apt-get update && apt-get install -y \
     git unzip libpq-dev libzip-dev libicu-dev libonig-dev libxml2-dev \

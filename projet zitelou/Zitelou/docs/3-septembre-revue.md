@@ -1,13 +1,13 @@
-# Revue Projet – 3 septembre 2025 16h10
+# Revue Projet – 3 septembre 2025 16h30
 
 ## 1. Résumé Exécutif
 
 Application backend Symfony 7.3 (API Platform) pour gestion utilisateurs, abonnements, paiements,
 journalisation et sécurité JWT. Base technique stabilisée (containers Docker), premières entités
-créées. Pipeline qualité amorcé (tests unitaires + checklist revue + PHPStan niveau 3). Prochaine
-phase : enrichir couverture tests, durcir analyse statique (monter progressivement jusqu’à niveau
-max pertinent), implémenter cas métiers clés (abonnement / facturation / parental settings) et
-sécuriser surface API.
+créées. Pipeline qualité amorcé (18 tests couvrant persistance/relations, checklist revue, PHPStan
+niveau 3). Nouveau: test transitions d'état abonnement. Prochaine phase : enrichir couverture tests
+(services métier), monter niveaux d’analyse statique, introduire logique de domaine et sécuriser
+surface API.
 
 ## 2. Pile & Architecture
 
@@ -34,12 +34,12 @@ agrégations) encore à implémenter.
 
 ## 4. Qualité & Tests
 
-- Tests unitaires: démarrés (utilitaire `Assert` 100% couvert)
-- Couverture globale actuelle: ~3% (une seule classe testée)
+- Tests: 18 tests / 43 assertions (persistance, relations, transitions simples). Pas encore de
+  driver couverture actif (warning PHPUnit) → activer Xdebug/PCOV pour chiffres réels.
 - Mutation testing (Infection): configuré (seuils 80/85) – pas encore exécuté sur un périmètre large
 - Checklist revue: `docs/REVIEW_CHECKLIST.md` (doit être utilisée dans chaque PR)
-- Analyse statique: PHPStan installé (niveau 3 passé sans erreurs). Reste à monter les niveaux
-  (objectif: atteindre palier strict après correction types collections / nullabilité).
+- Analyse statique: PHPStan niveau 3 OK (0 erreurs). Cible prochaine: niveaux 4→6 (typage collections,
+  nullabilité stricte) puis éventuellement baseline.
 - Manque: normalisation codestyle (PHP CS Fixer / PHPCS), tests intégration API.
 
 ## 5. Infrastructure & Exécution
@@ -59,21 +59,22 @@ agrégations) encore à implémenter.
 
 | Zone                           | Risque                   | Impact | Mitigation courte                                   | Mitigation long terme         |
 | ------------------------------ | ------------------------ | ------ | --------------------------------------------------- | ----------------------------- |
-| Faible couverture tests        | Régressions silencieuses | Élevé  | Prioriser tests sur entités critiques               | Approche TDD services métier  |
+| Faible couverture mesurée      | Régressions silencieuses | Élevé  | Activer couverture + ajouter tests services         | Approche TDD services métier  |
 | Absence services métier        | Couplage contrôleurs/ORM | Moyen  | Introduire services Application                     | Strate Domain + Value Objects |
 | Analyse statique partielle     | Types implicites restants| Moyen  | Monter niveaux 4→6 rapidement                      | Niveau strict + baseline CI   |
+| Couverture code inconnue       | Manque de métriques      | Moyen  | Activer Xdebug/PCOV                                 | Intégration CI reporting      |
 | Xdebug actif par défaut        | Performance              | Faible | Basculer via variable ENV                           | Multi-stage build prod        |
 | Manque migrations validées CI  | Drift schéma             | Moyen  | Ajouter job `doctrine:migrations:migrate --dry-run` | Validation auto pré-merge     |
 
 ## 8. Prochaines Priorités (proposition sprint)
 
-1. Monter PHPStan niveaux 4→6 (résoudre types collections / signatures)
-2. Introduire services métier (SubscriptionService, PaymentService) + tests unitaires ciblés
-3. Tests API (CRUD principaux + scénarios abonnement) via ApiTestCase
-4. Implémenter transitions état abonnement (enum `SubscriptionStatus` + `SubscriptionEvent`)
-5. Ajouter événements domaine + logs d’audit automatiques
-6. Pipeline CI (tests + stan + couverture) puis injection progressive mutation testing
-7. Durcir sécurité (CORS affiner, headers sécurité, rotation clés JWT planifiée)
+1. Activer driver couverture (Xdebug/PCOV) pour baseline réelle
+2. Monter PHPStan niveaux 4→6 (types collections, nullabilité)
+3. Services métier (SubscriptionService, PaymentService) + tests unitaires ciblant transitions
+4. Tests API (CRUD + scénarios d’abonnement complets)
+5. Événements domaine + logs d’audit automatiques
+6. Pipeline CI (tests + stan + couverture) puis mutation progressive
+7. Durcir sécurité (CORS, headers, rotation clés JWT planifiée)
 
 ## 9. Commandes Utiles (Dev & Qualité)
 
@@ -169,12 +170,13 @@ Pour rendre le code plus modulable:
 
 ## 12. Actions Immédiates Recommandées
 
-1. Monter PHPStan niveau 4 puis 5 (corriger types manquants) – script `composer stan`
-2. Ajouter tests sur entités abonnement + transitions (définir invariants)
-3. Définir conventions commit / branche (Conventional Commits)
-4. Mettre en place pipeline CI (install cache, phpunit, coverage, phpstan) avant mutation
-5. Préparer baseline optionnelle PHPStan uniquement si blocage montée vers niveau strict
+1. Activer Xdebug/PCOV dans environnement test pour produire couverture
+2. Monter PHPStan niveau 4 puis 5 – script `composer stan`
+3. Ajouter services + tests transitions abonnement (annulation, expiration, renouvellement)
+4. Définir conventions commit / branche (Conventional Commits)
+5. Pipeline CI (install cache, phpunit, coverage, phpstan) avant mutation
+6. Préparer baseline PHPStan uniquement si blocage montée strict
 
 ---
 
-Document mis à jour le 3 septembre 2025 16h10.
+Document mis à jour le 3 septembre 2025 16h30.

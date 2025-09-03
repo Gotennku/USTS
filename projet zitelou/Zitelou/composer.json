@@ -84,7 +84,9 @@
         "test": "vendor/bin/phpunit",
         "test:cov": "vendor/bin/phpunit --coverage-html var/coverage --coverage-clover var/coverage/clover.xml",
         "mutation": "vendor/bin/infection --min-msi=80 --min-covered-msi=85",
-        "stan": "vendor/bin/phpstan analyse"
+    "stan": "vendor/bin/phpstan analyse",
+    "coverage": "XDEBUG_MODE=coverage vendor/bin/phpunit --coverage-html var/coverage --coverage-text",
+    "coverage:docker": "docker compose run --rm -e XDEBUG_MODE=coverage php composer coverage"
     },
     "conflict": {
         "symfony/symfony": "*"
