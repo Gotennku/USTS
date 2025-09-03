@@ -1,13 +1,13 @@
-# Revue Projet – 3 septembre 2025 16h05
+# Revue Projet – 3 septembre 2025 18h10
 
 ## 1. Résumé Exécutif
 
 Application backend Symfony 7.3 (API Platform) pour gestion utilisateurs, abonnements, paiements,
 journalisation et sécurité JWT. Base technique stabilisée (containers Docker), premières entités
-créées. Pipeline qualité renforcé : 19 tests verts (66 assertions), PHPStan monté proprement au
-niveau 4 (0 erreurs) après alignement nullabilité / types collections & email non-nullable.
-Prochaine phase : activer driver de couverture (Xdebug/PCOV manquant actuellement), pousser niveaux
-5+ PHPStan, introduire services métier & scénarios API.
+créées. Pipeline qualité renforcé : 20 tests verts (69 assertions) après ajout test fonctionnel
+Stripe (création subscription via webhook simulé). PHPStan niveau 4 (0 erreurs) stable. Prochaine
+phase : activer driver de couverture (Xdebug/PCOV), monter niveaux 5+, compléter scénarios Stripe
+(payments invoices, idempotence complète), introduire services métier & tests API bout‑à‑bout.
 
 ## 2. Pile & Architecture
 
@@ -43,16 +43,12 @@ agrégations) encore à implémenter.
   colonnes DB nullable (à confirmer via migration) + ajout generics Collection. Cible prochaine:
   niveaux 5→6 puis niveau max avec éventuellement baseline si nécessaire.
 
-### Couverture (Xdebug dans conteneur)
+### Couverture (à activer)
 
-Exécution: `docker compose run --rm php php -d xdebug.mode=coverage ./vendor/bin/phpunit --coverage-text`
-
-Résumé global:
-- Classes: 75.00% (24/32)
-- Méthodes: 94.85% (276/291)
-- Lignes: 89.53% (342/382)
-
-Entités principales: 100% lignes/méthodes sauf `User` (≈95.7% lignes, 90.91% méthodes). Les classes partielles sous 100% sont surtout `UserRepository` (méthode personnalisée non testée). La couverture élevée provient du test réflexif qui touche getters/setters — prioriser ensuite des tests orientés comportement (transitions, règles métier) pour solidifier la valeur réelle.
+Driver de couverture toujours non activé (Xdebug/PCOV absent à l'exécution de la suite → aucune
+stat actuelle fiable). Anciennes mesures locales (avant refactor Stripe) montraient une couverture
+élevée artificiellement (tests réflexifs getters/setters). Objectif : réactiver collecte puis
+réorienter vers tests comportement métier (abonnements, paiements, expiration, sécurité).
 
 ### Migration nullabilité (17h15)
 
@@ -72,12 +68,35 @@ Migration `Version20250903151723` générée et appliquée : colonnes *foreign k
 - Points à prévoir: rotation des clés, durées tokens, rate limiting, audit endpoints sensibles,
   intégration future d’un WAF ou reverse proxy.
 
-## 7. Dette & Risques
+## 7. Stripe – État Intégration (ajout 18h10)
+
+Implémenté :
+- Client `StripeClientFactory` (version API figée 2024-06-20)
+- Checkout abonnement (`/api/stripe/checkout/session/{id}`) + Billing Portal
+- Webhooks: subscription created/updated/deleted, invoice payment succeeded/failed
+- Métadonnées user_id / plan_id propagées dans `subscription_data`
+- Création Subscription & Payment, historisation (SubscriptionHistory), logging (StripeWebhookLog)
+
+Lacunes clés :
+- Idempotence par event.id absente (risque de duplications si retry Stripe)
+- Status intermédiaires Stripe (incomplete, past_due, trialing) non mappés
+- Montants Payment en float (précision) – préférer int (cents)
+- Pas de test invoices (paiement réussi/échec) ni cancel
+- Pas d’endpoint d’annulation volontaire / upgrade plan
+- Pas de synchronisation auto plans ↔ prices Stripe
+- Handler public exposé directement (à restreindre en prod)
+
+Priorité prochaine itération : idempotence + tests invoices + migration montant en cents.
+
+## 8. Dette & Risques
 
 | Zone                           | Risque                   | Impact | Mitigation courte                                   | Mitigation long terme         |
 | ------------------------------ | ------------------------ | ------ | --------------------------------------------------- | ----------------------------- |
-| Faible couverture mesurée (driver manquant) | Régressions silencieuses | Élevé  | Installer driver (Xdebug déjà conditionnel / ajouter PCOV) | Approche TDD services métier  |
+| Couverture réelle inactive (driver manquant) | Régressions silencieuses | Élevé  | Installer driver (Xdebug / PCOV) | Tests métier ciblés + suppression tests réflexifs |
 | Absence services métier        | Couplage contrôleurs/ORM | Moyen  | Introduire services Application                     | Strate Domain + Value Objects |
+| Idempotence webhooks incomplète| Replay Stripe dupliqué   | Moyen  | Stocker event.id + contrainte unique                | File asynchrone + reprocessing |
+| Float pour montants            | Erreurs arrondi          | Moyen  | Migrer vers int cents                               | Value Object Money             |
+| Mapping status Stripe minimal  | États incohérents        | Moyen  | Étendre mapping + transitions                        | Machine à états / domain rules |
 | Analyse statique partielle     | Types implicites restants| Moyen  | Monter niveaux 4→6 rapidement                      | Niveau strict + baseline CI   |
 | Couverture code inconnue       | Manque de métriques      | Moyen  | Activer Xdebug/PCOV                                 | Intégration CI reporting      |
 | Xdebug actif par défaut        | Performance              | Faible | Basculer via variable ENV                           | Multi-stage build prod        |
@@ -197,4 +216,4 @@ Pour rendre le code plus modulable:
 
 ---
 
-Document mis à jour le 3 septembre 2025 17h05.
+Document mis à jour le 3 septembre 2025 18h10.

@@ -27,6 +27,9 @@ class SubscriptionPlan
     #[ORM\Column(type: 'text', nullable: true)]
     private ?string $description = null;
 
+    #[ORM\Column(length: 100, nullable: true)]
+    private ?string $stripePriceId = null;
+
     /** @var \Doctrine\Common\Collections\Collection<int, Subscription> */
     #[ORM\OneToMany(mappedBy: 'plan', targetEntity: Subscription::class)]
     private \Doctrine\Common\Collections\Collection $subscriptions;
@@ -45,6 +48,8 @@ class SubscriptionPlan
     public function setCurrency(string $c): self { $this->currency = $c; return $this; }
     public function getDescription(): ?string { return $this->description; }
     public function setDescription(?string $d): self { $this->description = $d; return $this; }
+    public function getStripePriceId(): ?string { return $this->stripePriceId; }
+    public function setStripePriceId(?string $id): self { $this->stripePriceId = $id; return $this; }
     /** @return \Doctrine\Common\Collections\Collection<int, Subscription> */
     public function getSubscriptions(): \Doctrine\Common\Collections\Collection { return $this->subscriptions; }
 }
