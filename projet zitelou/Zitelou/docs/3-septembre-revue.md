@@ -53,6 +53,10 @@ Résumé global:
 - Lignes: 89.53% (342/382)
 
 Entités principales: 100% lignes/méthodes sauf `User` (≈95.7% lignes, 90.91% méthodes). Les classes partielles sous 100% sont surtout `UserRepository` (méthode personnalisée non testée). La couverture élevée provient du test réflexif qui touche getters/setters — prioriser ensuite des tests orientés comportement (transitions, règles métier) pour solidifier la valeur réelle.
+
+### Migration nullabilité (17h15)
+
+Migration `Version20250903151723` générée et appliquée : colonnes *foreign key* rendues `DEFAULT NULL` pour aligner code PHP (propriétés nullable) et schéma Doctrine (relations optionnelles). Reversibilité assurée via méthode `down()` rétablissant `NOT NULL`.
 - Manque: normalisation codestyle (PHP CS Fixer / PHPCS), tests intégration API.
 
 ## 5. Infrastructure & Exécution
