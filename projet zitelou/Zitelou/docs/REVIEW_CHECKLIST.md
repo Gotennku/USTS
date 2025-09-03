@@ -28,9 +28,11 @@ points ou justifier.
 
 ## 5. Tests
 
-- [ ] Tests unitaires ajoutés/ajustés
-- [ ] Couverture lignes fichier(s) modifié(s) >= 90%
-- [ ] Mutation score stable (infection)
+- [ ] Tests unitaires ajoutés/ajustés (nouvelle logique couverte)
+- [ ] Couverture lignes des fichiers modifiés >= 90% (vérifier rapport HTML ou `--coverage-text`)
+- [ ] Aucun test purement artificiel (éviter uniquement getters/setters sans logique) ajouté pour gonfler la métrique
+- [ ] Mutation score stable (Infection) ou justification (zone complexe / faux positifs)
+- [ ] Tests API ajoutés si endpoints REST/GraphQL modifiés
 
 ## 6. Performance
 
@@ -44,16 +46,29 @@ points ou justifier.
 
 ## 8. Qualité Automatisée
 
-- [ ] PHPUnit vert
-- [ ] Infection >= seuils (MSI / Covered MSI)
-- [ ] Static analysis (à ajouter ultérieurement)
+- [ ] PHPUnit vert (CI / local)
+- [ ] Infection >= seuils (MSI / Covered MSI) ou exécution planifiée si volumineux
+- [ ] Analyse statique PHPStan (niveau courant: 4, objectif: augmenter) sans nouvelles régressions
+- [ ] Alerte N+1 via profiler Symfony vérifiée si requêtes ajoutées
+- [ ] Pas de TODO laissé sans ticket référencé
 
 ## 9. Maintenance
 
-- [ ] Noms explicites (variables, méthodes)
-- [ ] Aucune classe > 500 lignes, méthode > 50 lignes
+- [ ] Noms explicites (variables, méthodes, DTO, services)
+- [ ] Aucune classe > 500 lignes, méthode > 50 lignes (sinon refactor planifié)
+- [ ] Pas de logique métier dans contrôleur (redirigée vers service / domaine) si ajout significatif
+- [ ] Relations Doctrine cohérentes (nullable vs non-nullable) + migration associée générée
+- [ ] Collections typées via phpdoc generics
 
-## 10. Validation Finale
+## 10. Sécurité & Données
+
+- [ ] Aucune clé secrète commitée / diff contenant secrets
+- [ ] Données personnelles minimisées (privacy by design)
+- [ ] Champs sensibles (mot de passe, token) jamais loggés ou exposés en réponse
+
+## 11. Validation Finale
 
 - [ ] Pair review effectuée
-- [ ] Justifications déviations listées
+- [ ] Justifications déviations listées (section PR)
+- [ ] Migration exécutée localement (le cas échéant) + résultat `doctrine:schema:validate` OK
+- [ ] Changelog / revue de jour mise à jour si impact visible
