@@ -10,5 +10,7 @@ use Doctrine\Persistence\ManagerRegistry;
 class PaymentRepository extends ServiceEntityRepository
 {
     public function __construct(ManagerRegistry $registry)
-    { parent::__construct($registry, Payment::class); }
+    {
+        parent::__construct($registry, Payment::class);
+    }
 }

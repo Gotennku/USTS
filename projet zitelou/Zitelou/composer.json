@@ -40,7 +40,9 @@
         "infection/infection": "^0.29.14",
         "phpstan/phpstan": "^2.1.22",
         "phpstan/phpstan-doctrine": "^2.0",
-        "phpunit/phpunit": "^11.5.36"
+    "phpunit/phpunit": "^11.5.36",
+    "friendsofphp/php-cs-fixer": "^3.87.1",
+    "squizlabs/php_codesniffer": "^3.13.2"
     },
     "config": {
         "allow-plugins": {
@@ -86,9 +88,14 @@
         "test": "vendor/bin/phpunit",
         "test:cov": "vendor/bin/phpunit --coverage-html var/coverage --coverage-clover var/coverage/clover.xml",
         "mutation": "vendor/bin/infection --min-msi=80 --min-covered-msi=85",
-    "stan": "vendor/bin/phpstan analyse",
-    "coverage": "XDEBUG_MODE=coverage vendor/bin/phpunit --coverage-html var/coverage --coverage-text",
-    "coverage:docker": "docker compose run --rm -e XDEBUG_MODE=coverage php composer coverage"
+        "stan": "vendor/bin/phpstan analyse",
+        "coverage": "XDEBUG_MODE=coverage vendor/bin/phpunit --coverage-html var/coverage --coverage-text",
+        "coverage:docker": "docker compose run --rm -e XDEBUG_MODE=coverage php composer coverage",
+        "cs:fix": "PHP_CS_FIXER_IGNORE_ENV=1 vendor/bin/php-cs-fixer fix --verbose",
+        "cs:check": "PHP_CS_FIXER_IGNORE_ENV=1 vendor/bin/php-cs-fixer fix --dry-run --diff",
+        "lint:phpcs": "vendor/bin/phpcs --standard=phpcs.xml.dist -q",
+        "lint:phpcs:report": "vendor/bin/phpcs --standard=phpcs.xml.dist --report=full",
+        "lint:phpcs:fix": "vendor/bin/phpcbf --standard=phpcs.xml.dist"
     },
     "conflict": {
         "symfony/symfony": "*"

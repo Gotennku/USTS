@@ -13,5 +13,5 @@ $_ENV['DATABASE_URL'] = 'sqlite:///' . dirname(__DIR__) . '/var/test.db';
 $_SERVER['DATABASE_URL'] = $_ENV['DATABASE_URL'];
 
 if (!empty($_SERVER['APP_DEBUG'])) {
-    umask(0000);
+    umask(0o000);
 }

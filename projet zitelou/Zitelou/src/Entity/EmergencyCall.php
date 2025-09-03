@@ -2,8 +2,9 @@
 
 namespace App\Entity;
 
-use Doctrine\ORM\Mapping as ORM;
 use App\Enum\EmergencyCallStatus;
+use DateTimeImmutable;
+use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity]
 class EmergencyCall
@@ -18,19 +19,45 @@ class EmergencyCall
     private ?Child $child = null;
 
     #[ORM\Column(type: 'datetime_immutable')]
-    private \DateTimeImmutable $timestamp;
+    private DateTimeImmutable $timestamp;
 
     #[ORM\Column(enumType: EmergencyCallStatus::class)]
     private EmergencyCallStatus $status; // enum
 
     public function __construct()
-    { $this->timestamp = new \DateTimeImmutable(); }
+    {
+        $this->timestamp = new DateTimeImmutable();
+    }
 
-    public function getId(): ?int { return $this->id; }
-    public function getChild(): ?Child { return $this->child; }
-    public function setChild(?Child $child): self { $this->child = $child; return $this; }
-    public function getTimestamp(): \DateTimeImmutable { return $this->timestamp; }
-    public function setTimestamp(\DateTimeImmutable $t): self { $this->timestamp = $t; return $this; }
-    public function getStatus(): EmergencyCallStatus { return $this->status; }
-    public function setStatus(EmergencyCallStatus $s): self { $this->status = $s; return $this; }
+    public function getId(): ?int
+    {
+        return $this->id;
+    }
+    public function getChild(): ?Child
+    {
+        return $this->child;
+    }
+    public function setChild(?Child $child): self
+    {
+        $this->child = $child;
+        return $this;
+    }
+    public function getTimestamp(): DateTimeImmutable
+    {
+        return $this->timestamp;
+    }
+    public function setTimestamp(DateTimeImmutable $t): self
+    {
+        $this->timestamp = $t;
+        return $this;
+    }
+    public function getStatus(): EmergencyCallStatus
+    {
+        return $this->status;
+    }
+    public function setStatus(EmergencyCallStatus $s): self
+    {
+        $this->status = $s;
+        return $this;
+    }
 }

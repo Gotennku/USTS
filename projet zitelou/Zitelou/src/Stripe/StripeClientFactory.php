@@ -12,7 +12,8 @@ class StripeClientFactory
     public function __construct(
         private readonly string $secretKey,
         private readonly ?string $webhookSecret = null,
-    ) {}
+    ) {
+    }
 
     public function create(): StripeClient
     {

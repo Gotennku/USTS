@@ -2,11 +2,11 @@
 
 namespace App\Tests\Entity;
 
-use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
+use App\Kernel;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Tools\SchemaTool;
-
-use App\Kernel;
+use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
+use Throwable;
 
 abstract class DatabaseTestCase extends KernelTestCase
 {
@@ -29,7 +29,7 @@ abstract class DatabaseTestCase extends KernelTestCase
             $tool = new SchemaTool($this->em);
             try {
                 $tool->dropSchema($metadata);
-            } catch (\Throwable) {
+            } catch (Throwable) {
                 // ignore
             }
             $tool->createSchema($metadata);

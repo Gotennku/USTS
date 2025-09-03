@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use DateTimeImmutable;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity]
@@ -26,20 +27,60 @@ class UserLog
     private string $action;
 
     #[ORM\Column(type: 'datetime_immutable')]
-    private \DateTimeImmutable $timestamp;
+    private DateTimeImmutable $timestamp;
 
     public function __construct()
-    { $this->timestamp = new \DateTimeImmutable(); }
+    {
+        $this->timestamp = new DateTimeImmutable();
+    }
 
-    public function getId(): ?int { return $this->id; }
-    public function getUser(): ?User { return $this->user; }
-    public function setUser(?User $user): self { $this->user = $user; return $this; }
-    public function getIpAddress(): string { return $this->ipAddress; }
-    public function setIpAddress(string $v): self { $this->ipAddress = $v; return $this; }
-    public function getDevice(): string { return $this->device; }
-    public function setDevice(string $d): self { $this->device = $d; return $this; }
-    public function getAction(): string { return $this->action; }
-    public function setAction(string $a): self { $this->action = $a; return $this; }
-    public function getTimestamp(): \DateTimeImmutable { return $this->timestamp; }
-    public function setTimestamp(\DateTimeImmutable $t): self { $this->timestamp = $t; return $this; }
+    public function getId(): ?int
+    {
+        return $this->id;
+    }
+    public function getUser(): ?User
+    {
+        return $this->user;
+    }
+    public function setUser(?User $user): self
+    {
+        $this->user = $user;
+        return $this;
+    }
+    public function getIpAddress(): string
+    {
+        return $this->ipAddress;
+    }
+    public function setIpAddress(string $v): self
+    {
+        $this->ipAddress = $v;
+        return $this;
+    }
+    public function getDevice(): string
+    {
+        return $this->device;
+    }
+    public function setDevice(string $d): self
+    {
+        $this->device = $d;
+        return $this;
+    }
+    public function getAction(): string
+    {
+        return $this->action;
+    }
+    public function setAction(string $a): self
+    {
+        $this->action = $a;
+        return $this;
+    }
+    public function getTimestamp(): DateTimeImmutable
+    {
+        return $this->timestamp;
+    }
+    public function setTimestamp(DateTimeImmutable $t): self
+    {
+        $this->timestamp = $t;
+        return $this;
+    }
 }

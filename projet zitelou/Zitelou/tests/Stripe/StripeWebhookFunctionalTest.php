@@ -2,15 +2,15 @@
 
 namespace App\Tests\Stripe;
 
-use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
+use App\Entity\StripeWebhookLog;
+use App\Entity\SubscriptionPlan;
+use App\Entity\User;
+use App\Enum\SubscriptionStatus;
+use App\Service\Stripe\StripeWebhookHandler;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Tools\SchemaTool;
-use App\Service\Stripe\StripeWebhookHandler;
-use App\Entity\User;
-use App\Entity\SubscriptionPlan;
-use App\Entity\StripeWebhookLog;
-use App\Enum\SubscriptionStatus;
 use Stripe\Event;
+use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 
 class StripeWebhookFunctionalTest extends KernelTestCase
 {
@@ -25,18 +25,22 @@ class StripeWebhookFunctionalTest extends KernelTestCase
     {
         self::bootKernel();
         $this->em = self::getContainer()->get(EntityManagerInterface::class);
-    // Reconstruction complète du schéma pour garantir la présence de toutes les colonnes
-    $tool = new SchemaTool($this->em);
-    $classes = $this->em->getMetadataFactory()->getAllMetadata();
-    $tool->dropDatabase();
-    if ($classes) { $tool->createSchema($classes); }
+        // Reconstruction complète du schéma pour garantir la présence de toutes les colonnes
+        $tool = new SchemaTool($this->em);
+        $classes = $this->em->getMetadataFactory()->getAllMetadata();
+        $tool->dropDatabase();
+        if ($classes) {
+            $tool->createSchema($classes);
+        }
     }
 
     public function testHandleSubscriptionCreated(): void
     {
         $user = (new User())->setEmail('test@example.org')->setPassword('x');
         $plan = (new SubscriptionPlan())->setName('Plan')->setDurationDays(30)->setPrice('9.99')->setCurrency('EUR');
-        $this->em->persist($user); $this->em->persist($plan); $this->em->flush();
+        $this->em->persist($user);
+        $this->em->persist($plan);
+        $this->em->flush();
 
         /** @var StripeWebhookHandler $handler */
         $handler = self::getContainer()->get(StripeWebhookHandler::class);
@@ -48,8 +52,8 @@ class StripeWebhookFunctionalTest extends KernelTestCase
                 'object' => [
                     'id' => 'sub_local_123',
                     'metadata' => [ 'user_id' => (string)$user->getId(), 'plan_id' => (string)$plan->getId() ],
-                ]
-            ]
+                ],
+            ],
         ]);
 
         $log = (new StripeWebhookLog())

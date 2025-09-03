@@ -10,5 +10,7 @@ use Doctrine\Persistence\ManagerRegistry;
 class FeatureAccessRepository extends ServiceEntityRepository
 {
     public function __construct(ManagerRegistry $registry)
-    { parent::__construct($registry, FeatureAccess::class); }
+    {
+        parent::__construct($registry, FeatureAccess::class);
+    }
 }

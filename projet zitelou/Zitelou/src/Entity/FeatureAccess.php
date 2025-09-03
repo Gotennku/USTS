@@ -26,14 +26,45 @@ class FeatureAccess
     #[ORM\Column(type: 'json', nullable: true)]
     private ?array $limits = [];
 
-        public function getId(): ?int { return $this->id; }
-        public function getChild(): ?Child { return $this->child; }
-        public function setChild(?Child $child): self { $this->child = $child; return $this; }
-        public function getFeature(): string { return $this->feature; }
-        public function setFeature(string $f): self { $this->feature = $f; return $this; }
-        public function isEnabled(): bool { return $this->enabled; }
-        public function setEnabled(bool $e): self { $this->enabled = $e; return $this; }
-        public function getLimits(): ?array { return $this->limits; }
-        public function setLimits(?array $l): self { $this->limits = $l; return $this; }
+    public function getId(): ?int
+    {
+        return $this->id;
+    }
+    public function getChild(): ?Child
+    {
+        return $this->child;
+    }
+    public function setChild(?Child $child): self
+    {
+        $this->child = $child;
+        return $this;
+    }
+    public function getFeature(): string
+    {
+        return $this->feature;
+    }
+    public function setFeature(string $f): self
+    {
+        $this->feature = $f;
+        return $this;
+    }
+    public function isEnabled(): bool
+    {
+        return $this->enabled;
+    }
+    public function setEnabled(bool $e): self
+    {
+        $this->enabled = $e;
+        return $this;
+    }
+    public function getLimits(): ?array
+    {
+        return $this->limits;
+    }
+    public function setLimits(?array $l): self
+    {
+        $this->limits = $l;
+        return $this;
+    }
 
 }

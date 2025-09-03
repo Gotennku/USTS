@@ -2,8 +2,8 @@
 
 namespace App\Tests\Entity;
 
-use App\Entity\User;
 use App\Entity\Child;
+use App\Entity\User;
 
 class UserChildRelationTest extends DatabaseTestCase
 {

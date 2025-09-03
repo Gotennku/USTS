@@ -2,26 +2,29 @@
 
 namespace App\Service\Stripe;
 
-use App\Enum\SubscriptionStatus;
+use App\Entity\Payment;
+use App\Entity\StripeWebhookLog;
 use App\Entity\Subscription;
 use App\Entity\SubscriptionHistory;
 use App\Entity\SubscriptionPlan;
-use App\Entity\StripeWebhookLog;
-use App\Entity\Payment;
 use App\Entity\User;
-use App\Enum\SubscriptionEvent;
 use App\Enum\PaymentStatus;
-use Doctrine\ORM\EntityManagerInterface;
+use App\Enum\SubscriptionEvent;
+use App\Enum\SubscriptionStatus;
 use App\Stripe\StripeClientFactory;
-use Stripe\Webhook;
+use DateTime;
+use DateTimeImmutable;
+use Doctrine\ORM\EntityManagerInterface;
 use Stripe\Event;
+use Stripe\Webhook;
 
 class StripeWebhookHandler
 {
     public function __construct(
         private readonly StripeClientFactory $factory,
         private readonly EntityManagerInterface $em
-    ) {}
+    ) {
+    }
 
     public function constructEvent(string $payload, string $signature): Event
     {
@@ -50,25 +53,33 @@ class StripeWebhookHandler
     {
         $object = $event->data['object'] ?? [];
         $stripeId = $object['id'] ?? null;
-        if (!$stripeId) { return; }
+        if (!$stripeId) {
+            return;
+        }
         $metadata = $object['metadata'] ?? [];
         $userId = isset($metadata['user_id']) ? (int)$metadata['user_id'] : null;
         $planId = isset($metadata['plan_id']) ? (int)$metadata['plan_id'] : null;
-        if (!$userId || !$planId) { return; }
+        if (!$userId || !$planId) {
+            return;
+        }
 
         $user = $this->em->getRepository(User::class)->find($userId);
         $plan = $this->em->getRepository(SubscriptionPlan::class)->find($planId);
-        if (!$user || !$plan) { return; }
+        if (!$user || !$plan) {
+            return;
+        }
 
         // Vérifier si déjà existante (idempotence)
         $existing = $this->em->getRepository(Subscription::class)->findOneBy(['stripeSubscriptionId' => $stripeId]);
-        if ($existing) { return; }
+        if ($existing) {
+            return;
+        }
 
         $subscription = new Subscription();
         $subscription->setUser($user)
             ->setPlan($plan)
             ->setStatus(SubscriptionStatus::ACTIVE)
-            ->setStartDate(new \DateTimeImmutable())
+            ->setStartDate(new DateTimeImmutable())
             ->setStripeSubscriptionId($stripeId);
         $this->em->persist($subscription);
         $this->history($subscription, SubscriptionEvent::CREATED);
@@ -78,19 +89,23 @@ class StripeWebhookHandler
     {
         $data = $event->data['object'] ?? [];
         $stripeId = $data['id'] ?? null;
-        if (!$stripeId) { return; }
+        if (!$stripeId) {
+            return;
+        }
         $repo = $this->em->getRepository(Subscription::class);
         /** @var Subscription|null $subscription */
         $subscription = $repo->findOneBy(['stripeSubscriptionId' => $stripeId]);
-        if (!$subscription) { return; }
-        $periodEnd = isset($data['current_period_end']) ? (new \DateTimeImmutable())->setTimestamp((int)$data['current_period_end']) : null;
+        if (!$subscription) {
+            return;
+        }
+        $periodEnd = isset($data['current_period_end']) ? (new DateTimeImmutable())->setTimestamp((int)$data['current_period_end']) : null;
         if ($periodEnd) {
             // Renouvellement si la date a changé et est future
-            if ($periodEnd > new \DateTimeImmutable()) {
+            if ($periodEnd > new DateTimeImmutable()) {
                 // On ne modifie pas status si déjà active
                 $this->history($subscription, SubscriptionEvent::RENEWED);
             } else {
-                $subscription->setStatus(SubscriptionStatus::EXPIRED)->setEndDate(new \DateTime());
+                $subscription->setStatus(SubscriptionStatus::EXPIRED)->setEndDate(new DateTime());
                 $this->history($subscription, SubscriptionEvent::EXPIRED);
             }
         }
@@ -100,12 +115,16 @@ class StripeWebhookHandler
     {
         $data = $event->data['object'] ?? [];
         $stripeId = $data['id'] ?? null;
-        if (!$stripeId) { return; }
+        if (!$stripeId) {
+            return;
+        }
         $repo = $this->em->getRepository(Subscription::class);
         /** @var Subscription|null $subscription */
         $subscription = $repo->findOneBy(['stripeSubscriptionId' => $stripeId]);
-        if (!$subscription) { return; }
-        $subscription->setStatus(SubscriptionStatus::CANCELLED)->setEndDate(new \DateTime());
+        if (!$subscription) {
+            return;
+        }
+        $subscription->setStatus(SubscriptionStatus::CANCELLED)->setEndDate(new DateTime());
         $this->history($subscription, SubscriptionEvent::CANCELLED);
     }
 
@@ -116,15 +135,23 @@ class StripeWebhookHandler
         $subscriptionId = $object['subscription'] ?? null;
         $amountPaid = isset($object['amount_paid']) ? ((int)$object['amount_paid']) / 100 : null; // cents -> float
         $currency = $object['currency'] ?? 'eur';
-        if (!$subscriptionId || $amountPaid === null) { return; }
+        if (!$subscriptionId || $amountPaid === null) {
+            return;
+        }
         /** @var Subscription|null $subscription */
         $subscription = $this->em->getRepository(Subscription::class)->findOneBy(['stripeSubscriptionId' => $subscriptionId]);
-        if (!$subscription) { return; }
+        if (!$subscription) {
+            return;
+        }
         // Vérifier idempotence via charge/payment_intent
         $paymentIntentId = $object['payment_intent'] ?? null;
-        if (!$paymentIntentId) { return; }
+        if (!$paymentIntentId) {
+            return;
+        }
         $existing = $this->em->getRepository(Payment::class)->findOneBy(['stripePaymentIntentId' => $paymentIntentId]);
-        if ($existing) { return; }
+        if ($existing) {
+            return;
+        }
         $payment = new Payment();
         $payment->setSubscription($subscription)
             ->setAmount($amountPaid)
@@ -139,13 +166,19 @@ class StripeWebhookHandler
         $object = $event->data['object'] ?? [];
         $subscriptionId = $object['subscription'] ?? null;
         $paymentIntentId = $object['payment_intent'] ?? null;
-        if (!$subscriptionId || !$paymentIntentId) { return; }
+        if (!$subscriptionId || !$paymentIntentId) {
+            return;
+        }
         /** @var Subscription|null $subscription */
         $subscription = $this->em->getRepository(Subscription::class)->findOneBy(['stripeSubscriptionId' => $subscriptionId]);
-        if (!$subscription) { return; }
+        if (!$subscription) {
+            return;
+        }
         // Enregistrer un payment failed seulement s'il n'existe pas encore
         $existing = $this->em->getRepository(Payment::class)->findOneBy(['stripePaymentIntentId' => $paymentIntentId]);
-        if ($existing) { return; }
+        if ($existing) {
+            return;
+        }
         $payment = new Payment();
         $payment->setSubscription($subscription)
             ->setAmount(0.0)

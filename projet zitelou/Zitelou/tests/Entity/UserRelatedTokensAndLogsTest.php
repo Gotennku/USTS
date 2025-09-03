@@ -2,7 +2,7 @@
 
 namespace App\Tests\Entity;
 
-use App\Entity\{User, AuthToken, PasswordResetToken, UserLog, BanList, AdminLog, ParentalSettings};
+use App\Entity\{User};
 
 class UserRelatedTokensAndLogsTest extends DatabaseTestCase
 {
@@ -17,7 +17,9 @@ class UserRelatedTokensAndLogsTest extends DatabaseTestCase
         $adminLog = EntityFactory::adminLog($admin);
         $settings = EntityFactory::parentalSettings($user);
 
-        foreach ([$admin,$user,$auth,$reset,$log,$ban,$adminLog,$settings] as $e) { $this->em->persist($e); }
+        foreach ([$admin,$user,$auth,$reset,$log,$ban,$adminLog,$settings] as $e) {
+            $this->em->persist($e);
+        }
         $this->em->flush();
         $id = $user->getId();
         $this->em->clear();

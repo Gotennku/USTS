@@ -3,20 +3,14 @@
 namespace App\Entity;
 
 use App\Repository\UserRepository;
+use DateTime;
+use DateTimeImmutable;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
-use Doctrine\Common\Collections\Collection;
-use Doctrine\Common\Collections\ArrayCollection;
-use App\Entity\ParentalSettings;
-use App\Entity\Subscription;
-use App\Entity\Child;
-use App\Entity\UserLog;
-use App\Entity\AuthToken;
-use App\Entity\PasswordResetToken;
-use App\Entity\AdminLog;
-use App\Entity\BanList;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\Table(name: 'user')]
@@ -48,10 +42,10 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private bool $isActive = true;
 
     #[ORM\Column(name: 'created_at', type: 'datetime_immutable', options: ['default' => 'CURRENT_TIMESTAMP'])]
-    private \DateTimeImmutable $createdAt;
+    private DateTimeImmutable $createdAt;
 
     #[ORM\Column(name: 'updated_at', type: 'datetime', options: ['default' => 'CURRENT_TIMESTAMP'])]
-    private \DateTime $updatedAt;
+    private DateTime $updatedAt;
 
     /** @var Collection<int, Child> */
     #[ORM\OneToMany(mappedBy: 'parent', targetEntity: Child::class, orphanRemoval: true)]
@@ -88,36 +82,49 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function __construct()
     {
-        $now = new \DateTimeImmutable();
+        $now = new DateTimeImmutable();
         $this->createdAt = $now;
-        $this->updatedAt = new \DateTime();
+        $this->updatedAt = new DateTime();
         $this->children = new ArrayCollection();
-    $this->userLogs = new ArrayCollection();
-    $this->authTokens = new ArrayCollection();
-    $this->passwordResetTokens = new ArrayCollection();
-    $this->adminLogs = new ArrayCollection();
-    $this->banLists = new ArrayCollection();
+        $this->userLogs = new ArrayCollection();
+        $this->authTokens = new ArrayCollection();
+        $this->passwordResetTokens = new ArrayCollection();
+        $this->adminLogs = new ArrayCollection();
+        $this->banLists = new ArrayCollection();
     }
 
     #[ORM\PrePersist]
     public function onPrePersist(): void
     {
-        $now = new \DateTimeImmutable();
-        $this->updatedAt = new \DateTime();
+        $now = new DateTimeImmutable();
+        $this->updatedAt = new DateTime();
     }
 
     #[ORM\PreUpdate]
     public function onPreUpdate(): void
     {
-        $this->updatedAt = new \DateTime();
+        $this->updatedAt = new DateTime();
     }
 
-    public function getId(): ?int { return $this->id; }
+    public function getId(): ?int
+    {
+        return $this->id;
+    }
 
-    public function getEmail(): string { return $this->email; }
-    public function setEmail(string $email): self { $this->email = $email; return $this; }
+    public function getEmail(): string
+    {
+        return $this->email;
+    }
+    public function setEmail(string $email): self
+    {
+        $this->email = $email;
+        return $this;
+    }
 
-    public function getUserIdentifier(): string { return $this->email; }
+    public function getUserIdentifier(): string
+    {
+        return $this->email;
+    }
 
     /** @return string[] */
     public function getRoles(): array
@@ -128,30 +135,81 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         }
         return array_values(array_unique($roles));
     }
-    public function setRoles(array $roles): self { $this->roles = $roles; return $this; }
+    public function setRoles(array $roles): self
+    {
+        $this->roles = $roles;
+        return $this;
+    }
 
-    public function getPassword(): string { return $this->password; }
-    public function setPassword(string $password): self { $this->password = $password; return $this; }
+    public function getPassword(): string
+    {
+        return $this->password;
+    }
+    public function setPassword(string $password): self
+    {
+        $this->password = $password;
+        return $this;
+    }
 
-    public function eraseCredentials(): void {}
+    public function eraseCredentials(): void
+    {
+    }
 
-    public function getFirstName(): ?string { return $this->firstName; }
-    public function setFirstName(?string $v): self { $this->firstName = $v; return $this; }
+    public function getFirstName(): ?string
+    {
+        return $this->firstName;
+    }
+    public function setFirstName(?string $v): self
+    {
+        $this->firstName = $v;
+        return $this;
+    }
 
-    public function getLastName(): ?string { return $this->lastName; }
-    public function setLastName(?string $v): self { $this->lastName = $v; return $this; }
+    public function getLastName(): ?string
+    {
+        return $this->lastName;
+    }
+    public function setLastName(?string $v): self
+    {
+        $this->lastName = $v;
+        return $this;
+    }
 
-    public function isActive(): bool { return $this->isActive; }
-    public function setIsActive(bool $v): self { $this->isActive = $v; return $this; }
+    public function isActive(): bool
+    {
+        return $this->isActive;
+    }
+    public function setIsActive(bool $v): self
+    {
+        $this->isActive = $v;
+        return $this;
+    }
 
-    public function getCreatedAt(): \DateTimeImmutable { return $this->createdAt; }
-    public function setCreatedAt(\DateTimeImmutable $v): self { $this->createdAt = $v; return $this; }
+    public function getCreatedAt(): DateTimeImmutable
+    {
+        return $this->createdAt;
+    }
+    public function setCreatedAt(DateTimeImmutable $v): self
+    {
+        $this->createdAt = $v;
+        return $this;
+    }
 
-    public function getUpdatedAt(): \DateTime { return $this->updatedAt; }
-    public function setUpdatedAt(\DateTime $v): self { $this->updatedAt = $v; return $this; }
+    public function getUpdatedAt(): DateTime
+    {
+        return $this->updatedAt;
+    }
+    public function setUpdatedAt(DateTime $v): self
+    {
+        $this->updatedAt = $v;
+        return $this;
+    }
 
     /** @return Collection<int, Child> */
-    public function getChildren(): Collection { return $this->children; }
+    public function getChildren(): Collection
+    {
+        return $this->children;
+    }
     public function addChild(Child $child): self
     {
         if (!$this->children->contains($child)) {
@@ -170,7 +228,10 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    public function getParentalSettings(): ?ParentalSettings { return $this->parentalSettings; }
+    public function getParentalSettings(): ?ParentalSettings
+    {
+        return $this->parentalSettings;
+    }
     public function setParentalSettings(?ParentalSettings $parentalSettings): self
     {
         $this->parentalSettings = $parentalSettings;
@@ -180,7 +241,10 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    public function getSubscription(): ?Subscription { return $this->subscription; }
+    public function getSubscription(): ?Subscription
+    {
+        return $this->subscription;
+    }
     public function setSubscription(?Subscription $subscription): self
     {
         $this->subscription = $subscription;
@@ -191,7 +255,10 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     }
 
     /** @return Collection<int, UserLog> */
-    public function getUserLogs(): Collection { return $this->userLogs; }
+    public function getUserLogs(): Collection
+    {
+        return $this->userLogs;
+    }
     public function addUserLog(UserLog $log): self
     {
         if (!$this->userLogs->contains($log)) {
@@ -203,13 +270,18 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function removeUserLog(UserLog $log): self
     {
         if ($this->userLogs->removeElement($log)) {
-            if ($log->getUser() === $this) { $log->setUser(null); }
+            if ($log->getUser() === $this) {
+                $log->setUser(null);
+            }
         }
         return $this;
     }
 
     /** @return Collection<int, AuthToken> */
-    public function getAuthTokens(): Collection { return $this->authTokens; }
+    public function getAuthTokens(): Collection
+    {
+        return $this->authTokens;
+    }
     public function addAuthToken(AuthToken $token): self
     {
         if (!$this->authTokens->contains($token)) {
@@ -221,13 +293,18 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function removeAuthToken(AuthToken $token): self
     {
         if ($this->authTokens->removeElement($token)) {
-            if ($token->getUser() === $this) { $token->setUser(null); }
+            if ($token->getUser() === $this) {
+                $token->setUser(null);
+            }
         }
         return $this;
     }
 
     /** @return Collection<int, PasswordResetToken> */
-    public function getPasswordResetTokens(): Collection { return $this->passwordResetTokens; }
+    public function getPasswordResetTokens(): Collection
+    {
+        return $this->passwordResetTokens;
+    }
     public function addPasswordResetToken(PasswordResetToken $t): self
     {
         if (!$this->passwordResetTokens->contains($t)) {
@@ -239,13 +316,18 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function removePasswordResetToken(PasswordResetToken $t): self
     {
         if ($this->passwordResetTokens->removeElement($t)) {
-            if ($t->getUser() === $this) { $t->setUser(null); }
+            if ($t->getUser() === $this) {
+                $t->setUser(null);
+            }
         }
         return $this;
     }
 
     /** @return Collection<int, AdminLog> */
-    public function getAdminLogs(): Collection { return $this->adminLogs; }
+    public function getAdminLogs(): Collection
+    {
+        return $this->adminLogs;
+    }
     public function addAdminLog(AdminLog $log): self
     {
         if (!$this->adminLogs->contains($log)) {
@@ -257,13 +339,18 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function removeAdminLog(AdminLog $log): self
     {
         if ($this->adminLogs->removeElement($log)) {
-            if ($log->getAdmin() === $this) { $log->setAdmin(null); }
+            if ($log->getAdmin() === $this) {
+                $log->setAdmin(null);
+            }
         }
         return $this;
     }
 
     /** @return Collection<int, BanList> */
-    public function getBanLists(): Collection { return $this->banLists; }
+    public function getBanLists(): Collection
+    {
+        return $this->banLists;
+    }
     public function addBanList(BanList $ban): self
     {
         if (!$this->banLists->contains($ban)) {
@@ -275,11 +362,20 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function removeBanList(BanList $ban): self
     {
         if ($this->banLists->removeElement($ban)) {
-            if ($ban->getUser() === $this) { $ban->setUser(null); }
+            if ($ban->getUser() === $this) {
+                $ban->setUser(null);
+            }
         }
         return $this;
     }
 
-    public function getStripeCustomerId(): ?string { return $this->stripeCustomerId; }
-    public function setStripeCustomerId(?string $id): self { $this->stripeCustomerId = $id; return $this; }
+    public function getStripeCustomerId(): ?string
+    {
+        return $this->stripeCustomerId;
+    }
+    public function setStripeCustomerId(?string $id): self
+    {
+        $this->stripeCustomerId = $id;
+        return $this;
+    }
 }

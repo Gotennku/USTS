@@ -2,9 +2,12 @@
 
 namespace App\Tests\Entity;
 
+use DateTime;
+use DateTimeImmutable;
 use PHPUnit\Framework\TestCase;
 use ReflectionClass;
 use ReflectionNamedType;
+use ReflectionType;
 use UnitEnum;
 
 /**
@@ -27,9 +30,15 @@ class EntityReflectionCoverageTest extends TestCase
 
         foreach ($files as $file) {
             $className = $this->classFromFile($file);
-            if ($className === null) { continue; }
-            if (str_contains($className, 'Repository')) { continue; }
-            if (str_contains($className, 'Kernel')) { continue; }
+            if ($className === null) {
+                continue;
+            }
+            if (str_contains($className, 'Repository')) {
+                continue;
+            }
+            if (str_contains($className, 'Kernel')) {
+                continue;
+            }
             // Instanciation et exécution
             $instance = $this->getInstance($className);
             $ref = new ReflectionClass($instance);
@@ -37,8 +46,12 @@ class EntityReflectionCoverageTest extends TestCase
             // Setters
             foreach ($ref->getMethods() as $method) {
                 $name = $method->getName();
-                if ($method->isStatic()) { continue; }
-                if (!$method->isPublic()) { continue; }
+                if ($method->isStatic()) {
+                    continue;
+                }
+                if (!$method->isPublic()) {
+                    continue;
+                }
                 if ($method->getNumberOfParameters() === 1 && str_starts_with($name, 'set')) {
                     $param = $method->getParameters()[0];
                     $value = $this->sampleValueForParameter($param->getType());
@@ -64,7 +77,9 @@ class EntityReflectionCoverageTest extends TestCase
 
             // Getters / is* pour compter la couverture
             foreach ($ref->getMethods() as $method) {
-                if ($method->isStatic() || !$method->isPublic()) { continue; }
+                if ($method->isStatic() || !$method->isPublic()) {
+                    continue;
+                }
                 $name = $method->getName();
                 if ((str_starts_with($name, 'get') || str_starts_with($name, 'is')) && $method->getNumberOfParameters() === 0) {
                     $method->invoke($instance);
@@ -78,15 +93,23 @@ class EntityReflectionCoverageTest extends TestCase
     private function classFromFile(string $file): ?string
     {
         $contents = file_get_contents($file);
-        if ($contents === false) { return null; }
-        if (!preg_match('/namespace\\s+([^;]+);/m', $contents, $nsMatch)) { return null; }
-        if (!preg_match('/class\\s+(\\w+)/m', $contents, $clMatch)) { return null; }
+        if ($contents === false) {
+            return null;
+        }
+        if (!preg_match('/namespace\\s+([^;]+);/m', $contents, $nsMatch)) {
+            return null;
+        }
+        if (!preg_match('/class\\s+(\\w+)/m', $contents, $clMatch)) {
+            return null;
+        }
         return trim($nsMatch[1]) . '\\' . trim($clMatch[1]);
     }
 
     private function getInstance(string $class): object
     {
-        if (isset($this->instances[$class])) { return $this->instances[$class]; }
+        if (isset($this->instances[$class])) {
+            return $this->instances[$class];
+        }
         if (isset($this->inProgress[$class])) { // éviter récursion infinie
             return $this->instances[$class] ?? (object)[];
         }
@@ -97,9 +120,11 @@ class EntityReflectionCoverageTest extends TestCase
         return $obj;
     }
 
-    private function sampleValueForParameter(?\ReflectionType $type): mixed
+    private function sampleValueForParameter(?ReflectionType $type): mixed
     {
-        if (!$type instanceof ReflectionNamedType) { return null; }
+        if (!$type instanceof ReflectionNamedType) {
+            return null;
+        }
         if ($type->isBuiltin()) {
             return match ($type->getName()) {
                 'string' => 'sample',
@@ -116,8 +141,12 @@ class EntityReflectionCoverageTest extends TestCase
             return $cases[0];
         }
         // Date/DateTime
-        if (in_array($name, [\DateTime::class, '\\DateTime'], true)) { return new \DateTime(); }
-        if (in_array($name, [\DateTimeImmutable::class, '\\DateTimeImmutable'], true)) { return new \DateTimeImmutable(); }
+        if (in_array($name, [DateTime::class, '\\DateTime'], true)) {
+            return new DateTime();
+        }
+        if (in_array($name, [DateTimeImmutable::class, '\\DateTimeImmutable'], true)) {
+            return new DateTimeImmutable();
+        }
         // Entité relationnelle
         if (str_starts_with($name, 'App\\Entity\\')) {
             return $this->getInstance($name);

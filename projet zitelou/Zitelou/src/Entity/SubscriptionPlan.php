@@ -35,21 +35,71 @@ class SubscriptionPlan
     private \Doctrine\Common\Collections\Collection $subscriptions;
 
     public function __construct()
-    { $this->subscriptions = new \Doctrine\Common\Collections\ArrayCollection(); }
+    {
+        $this->subscriptions = new \Doctrine\Common\Collections\ArrayCollection();
+    }
 
-    public function getId(): ?int { return $this->id; }
-    public function getName(): string { return $this->name; }
-    public function setName(string $n): self { $this->name = $n; return $this; }
-    public function getDurationDays(): int { return $this->durationDays; }
-    public function setDurationDays(int $d): self { $this->durationDays = $d; return $this; }
-    public function getPrice(): string { return $this->price; }
-    public function setPrice(string $p): self { $this->price = $p; return $this; }
-    public function getCurrency(): string { return $this->currency; }
-    public function setCurrency(string $c): self { $this->currency = $c; return $this; }
-    public function getDescription(): ?string { return $this->description; }
-    public function setDescription(?string $d): self { $this->description = $d; return $this; }
-    public function getStripePriceId(): ?string { return $this->stripePriceId; }
-    public function setStripePriceId(?string $id): self { $this->stripePriceId = $id; return $this; }
+    public function getId(): ?int
+    {
+        return $this->id;
+    }
+    public function getName(): string
+    {
+        return $this->name;
+    }
+    public function setName(string $n): self
+    {
+        $this->name = $n;
+        return $this;
+    }
+    public function getDurationDays(): int
+    {
+        return $this->durationDays;
+    }
+    public function setDurationDays(int $d): self
+    {
+        $this->durationDays = $d;
+        return $this;
+    }
+    public function getPrice(): string
+    {
+        return $this->price;
+    }
+    public function setPrice(string $p): self
+    {
+        $this->price = $p;
+        return $this;
+    }
+    public function getCurrency(): string
+    {
+        return $this->currency;
+    }
+    public function setCurrency(string $c): self
+    {
+        $this->currency = $c;
+        return $this;
+    }
+    public function getDescription(): ?string
+    {
+        return $this->description;
+    }
+    public function setDescription(?string $d): self
+    {
+        $this->description = $d;
+        return $this;
+    }
+    public function getStripePriceId(): ?string
+    {
+        return $this->stripePriceId;
+    }
+    public function setStripePriceId(?string $id): self
+    {
+        $this->stripePriceId = $id;
+        return $this;
+    }
     /** @return \Doctrine\Common\Collections\Collection<int, Subscription> */
-    public function getSubscriptions(): \Doctrine\Common\Collections\Collection { return $this->subscriptions; }
+    public function getSubscriptions(): \Doctrine\Common\Collections\Collection
+    {
+        return $this->subscriptions;
+    }
 }

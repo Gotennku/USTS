@@ -3,13 +3,14 @@
 namespace App\Controller\Api;
 
 use App\Entity\SubscriptionPlan;
-use Doctrine\ORM\EntityManagerInterface;
 use App\Service\Stripe\StripeCheckoutService;
-use Symfony\Component\HttpFoundation\Request;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
+use Throwable;
 
 #[Route('/api/stripe', name: 'stripe_')]
 class StripeCheckoutController
@@ -18,7 +19,8 @@ class StripeCheckoutController
         private readonly StripeCheckoutService $checkout,
         private readonly EntityManagerInterface $em,
         private readonly TokenStorageInterface $tokens,
-    ) {}
+    ) {
+    }
 
     #[Route('/checkout/session/{id}', name: 'checkout_session', methods: ['POST'])]
     #[IsGranted('ROLE_USER')]
@@ -40,7 +42,7 @@ class StripeCheckoutController
         try {
             $url = $this->checkout->createSubscriptionSession($user, $plan, $success, $cancel);
             return new JsonResponse(['checkout_url' => $url], 201);
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             return new JsonResponse(['error' => $e->getMessage()], 400);
         }
     }
@@ -60,7 +62,7 @@ class StripeCheckoutController
         try {
             $url = $this->checkout->createBillingPortalUrl($user, $returnUrl);
             return new JsonResponse(['portal_url' => $url]);
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             return new JsonResponse(['error' => $e->getMessage()], 400);
         }
     }

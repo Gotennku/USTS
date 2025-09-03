@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use LogicException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -33,6 +34,6 @@ class SecurityController extends AbstractController
     public function logout(): void
     {
         // Géré automatiquement par Symfony (firewall + security.yaml)
-        throw new \LogicException('Ce code ne doit jamais être exécuté.');
+        throw new LogicException('Ce code ne doit jamais être exécuté.');
     }
 }

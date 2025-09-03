@@ -2,8 +2,8 @@
 
 namespace App\Tests\Entity;
 
-use App\Entity\{Subscription, SubscriptionHistory, SubscriptionPlan, User};
-use App\Enum\{SubscriptionStatus, SubscriptionEvent};
+use App\Entity\{Subscription, SubscriptionHistory};
+use App\Enum\{SubscriptionEvent, SubscriptionStatus};
 
 class SubscriptionStatusTransitionTest extends DatabaseTestCase
 {
@@ -40,7 +40,9 @@ class SubscriptionStatusTransitionTest extends DatabaseTestCase
 
         // Vérifie cohérence status vs events enregistrés
         $events = [];
-        foreach ($reloaded->getHistoryEntries() as $h) { $events[] = $h->getEvent()->value.'|'.$h->getStatus()->value; }
+        foreach ($reloaded->getHistoryEntries() as $h) {
+            $events[] = $h->getEvent()->value.'|'.$h->getStatus()->value;
+        }
         self::assertContains('expired|expired', $events);
         self::assertContains('renewed|active', $events);
     }

@@ -8,6 +8,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Throwable;
 
 #[Route('/api/stripe/webhook', name: 'stripe_webhook', methods: ['POST'])]
 class StripeWebhookController
@@ -15,7 +16,8 @@ class StripeWebhookController
     public function __construct(
         private readonly StripeWebhookHandler $handler,
         private readonly EntityManagerInterface $em
-    ) {}
+    ) {
+    }
 
     public function __invoke(Request $request): Response
     {
@@ -24,7 +26,7 @@ class StripeWebhookController
 
         try {
             $event = $this->handler->constructEvent($payload, $sig ?? '');
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             return new Response('Invalid payload', Response::HTTP_BAD_REQUEST);
         }
 

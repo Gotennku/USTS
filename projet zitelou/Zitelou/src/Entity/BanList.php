@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use DateTimeImmutable;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity]
@@ -20,13 +21,37 @@ class BanList
     private string $reason;
 
     #[ORM\Column(type: 'datetime_immutable', nullable: true)]
-    private ?\DateTimeImmutable $bannedUntil = null;
+    private ?DateTimeImmutable $bannedUntil = null;
 
-    public function getId(): ?int { return $this->id; }
-    public function getUser(): ?User { return $this->user; }
-    public function setUser(?User $user): self { $this->user = $user; return $this; }
-    public function getReason(): string { return $this->reason; }
-    public function setReason(string $r): self { $this->reason = $r; return $this; }
-    public function getBannedUntil(): ?\DateTimeImmutable { return $this->bannedUntil; }
-    public function setBannedUntil(?\DateTimeImmutable $d): self { $this->bannedUntil = $d; return $this; }
+    public function getId(): ?int
+    {
+        return $this->id;
+    }
+    public function getUser(): ?User
+    {
+        return $this->user;
+    }
+    public function setUser(?User $user): self
+    {
+        $this->user = $user;
+        return $this;
+    }
+    public function getReason(): string
+    {
+        return $this->reason;
+    }
+    public function setReason(string $r): self
+    {
+        $this->reason = $r;
+        return $this;
+    }
+    public function getBannedUntil(): ?DateTimeImmutable
+    {
+        return $this->bannedUntil;
+    }
+    public function setBannedUntil(?DateTimeImmutable $d): self
+    {
+        $this->bannedUntil = $d;
+        return $this;
+    }
 }

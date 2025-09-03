@@ -6,13 +6,15 @@ use App\Entity\SubscriptionPlan;
 use App\Entity\User;
 use App\Stripe\StripeClientFactory;
 use Doctrine\ORM\EntityManagerInterface;
+use RuntimeException;
 
 class StripeCheckoutService
 {
     public function __construct(
         private readonly StripeClientFactory $factory,
         private readonly EntityManagerInterface $em,
-    ) {}
+    ) {
+    }
 
     public function ensureCustomer(User $user): string
     {
@@ -34,7 +36,7 @@ class StripeCheckoutService
         $client = $this->factory->create();
         $customerId = $this->ensureCustomer($user);
         if (!$plan->getStripePriceId()) {
-            throw new \RuntimeException('Plan non lié à un price Stripe');
+            throw new RuntimeException('Plan non lié à un price Stripe');
         }
         // Important: subscription_data -> metadata pour retrouver user & plan dans l'event customer.subscription.created
         $session = $client->checkout->sessions->create([

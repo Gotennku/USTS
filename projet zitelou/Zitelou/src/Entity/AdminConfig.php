@@ -18,9 +18,26 @@ class AdminConfig
     #[ORM\Column(type: 'text')]
     private string $value;
 
-    public function getId(): ?int { return $this->id; }
-    public function getKey(): string { return $this->key; }
-    public function setKey(string $k): self { $this->key = $k; return $this; }
-    public function getValue(): string { return $this->value; }
-    public function setValue(string $v): self { $this->value = $v; return $this; }
+    public function getId(): ?int
+    {
+        return $this->id;
+    }
+    public function getKey(): string
+    {
+        return $this->key;
+    }
+    public function setKey(string $k): self
+    {
+        $this->key = $k;
+        return $this;
+    }
+    public function getValue(): string
+    {
+        return $this->value;
+    }
+    public function setValue(string $v): self
+    {
+        $this->value = $v;
+        return $this;
+    }
 }

@@ -22,11 +22,35 @@ class EmergencyContact
     #[ORM\Column(length: 30)]
     private string $phoneNumber;
 
-    public function getId(): ?int { return $this->id; }
-    public function getChild(): ?Child { return $this->child; }
-    public function setChild(?Child $child): self { $this->child = $child; return $this; }
-    public function getName(): string { return $this->name; }
-    public function setName(string $n): self { $this->name = $n; return $this; }
-    public function getPhoneNumber(): string { return $this->phoneNumber; }
-    public function setPhoneNumber(string $p): self { $this->phoneNumber = $p; return $this; }
+    public function getId(): ?int
+    {
+        return $this->id;
+    }
+    public function getChild(): ?Child
+    {
+        return $this->child;
+    }
+    public function setChild(?Child $child): self
+    {
+        $this->child = $child;
+        return $this;
+    }
+    public function getName(): string
+    {
+        return $this->name;
+    }
+    public function setName(string $n): self
+    {
+        $this->name = $n;
+        return $this;
+    }
+    public function getPhoneNumber(): string
+    {
+        return $this->phoneNumber;
+    }
+    public function setPhoneNumber(string $p): self
+    {
+        $this->phoneNumber = $p;
+        return $this;
+    }
 }

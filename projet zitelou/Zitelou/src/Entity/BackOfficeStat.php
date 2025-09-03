@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use DateTimeImmutable;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity]
@@ -19,16 +20,42 @@ class BackOfficeStat
     private float $value;
 
     #[ORM\Column(type: 'datetime_immutable')]
-    private \DateTimeImmutable $date;
+    private DateTimeImmutable $date;
 
     public function __construct()
-    { $this->date = new \DateTimeImmutable(); }
+    {
+        $this->date = new DateTimeImmutable();
+    }
 
-    public function getId(): ?int { return $this->id; }
-    public function getMetric(): string { return $this->metric; }
-    public function setMetric(string $m): self { $this->metric = $m; return $this; }
-    public function getValue(): float { return $this->value; }
-    public function setValue(float $v): self { $this->value = $v; return $this; }
-    public function getDate(): \DateTimeImmutable { return $this->date; }
-    public function setDate(\DateTimeImmutable $d): self { $this->date = $d; return $this; }
+    public function getId(): ?int
+    {
+        return $this->id;
+    }
+    public function getMetric(): string
+    {
+        return $this->metric;
+    }
+    public function setMetric(string $m): self
+    {
+        $this->metric = $m;
+        return $this;
+    }
+    public function getValue(): float
+    {
+        return $this->value;
+    }
+    public function setValue(float $v): self
+    {
+        $this->value = $v;
+        return $this;
+    }
+    public function getDate(): DateTimeImmutable
+    {
+        return $this->date;
+    }
+    public function setDate(DateTimeImmutable $d): self
+    {
+        $this->date = $d;
+        return $this;
+    }
 }

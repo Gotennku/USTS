@@ -2,7 +2,7 @@
 
 namespace App\Tests\Entity;
 
-use App\Entity\{Subscription, Payment, SubscriptionHistory, StripeWebhookLog, SubscriptionPlan};
+use App\Entity\{Subscription, SubscriptionPlan};
 
 class SubscriptionAggregateTest extends DatabaseTestCase
 {
@@ -18,7 +18,9 @@ class SubscriptionAggregateTest extends DatabaseTestCase
 
         $this->em->persist($user);
         $this->em->persist($plan);
-        foreach ([$sub,$payment1,$payment2,$history,$webhook] as $e) { $this->em->persist($e); }
+        foreach ([$sub,$payment1,$payment2,$history,$webhook] as $e) {
+            $this->em->persist($e);
+        }
         $this->em->flush();
         $id = $sub->getId();
         $this->em->clear();

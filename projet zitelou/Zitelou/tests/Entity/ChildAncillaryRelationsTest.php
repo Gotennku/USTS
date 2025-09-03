@@ -2,7 +2,7 @@
 
 namespace App\Tests\Entity;
 
-use App\Entity\{AuthorizedContact, AuthorizedApp, FeatureAccess, EmergencyContact, EmergencyCall, GeoLocation, Child};
+use App\Entity\{Child};
 use App\Enum\EmergencyCallStatus;
 
 class ChildAncillaryRelationsTest extends DatabaseTestCase
@@ -22,7 +22,9 @@ class ChildAncillaryRelationsTest extends DatabaseTestCase
 
         $this->em->persist($user);
         $this->em->persist($child);
-        foreach ($entities as $e) { $this->em->persist($e); }
+        foreach ($entities as $e) {
+            $this->em->persist($e);
+        }
         $this->em->flush();
         $id = $child->getId();
         $this->em->clear();
