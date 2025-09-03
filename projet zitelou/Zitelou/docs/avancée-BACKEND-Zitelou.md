@@ -1,4 +1,4 @@
-# Revue Projet – 3 septembre 2025 16h25
+# Revue Projet – 3 septembre 2025 17h56
 
 ## 1. Résumé Exécutif
 
@@ -72,7 +72,7 @@ Migration `Version20250903151723` générée et appliquée : colonnes *foreign k
 - Points à prévoir: rotation des clés, durées tokens, rate limiting, audit endpoints sensibles,
   intégration future d’un WAF ou reverse proxy.
 
-## 7. Stripe – État Intégration (mise à jour 17h40)
+## 7. Stripe – État Intégration (mise à jour 17h56)
 
 Implémenté :
 - Client `StripeClientFactory` (version API figée 2024-06-20)
@@ -221,4 +221,4 @@ Pour rendre le code plus modulable:
 
 ---
 
-Document mis à jour le 3 septembre 2025 16h53.
+Document mis à jour le 3 septembre 2025 17h56.
