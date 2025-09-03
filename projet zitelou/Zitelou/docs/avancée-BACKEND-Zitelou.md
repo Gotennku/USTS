@@ -4,9 +4,9 @@
 
 Application backend Symfony 7.3 (API Platform) pour gestion utilisateurs, abonnements, paiements,
 journalisation et sécurité JWT. Base technique stabilisée (containers Docker), premières entités
-créées. Pipeline qualité renforcé : 20 tests verts (69 assertions) après ajout test fonctionnel
-Stripe (création subscription via webhook simulé). PHPStan niveau 4 (0 erreurs) stable. Couverture
-maintenant activée via Xdebug (Classes 64.86% / Méthodes 89.87% / Lignes 66.96%). Prochaine phase :
+créées. Pipeline qualité renforcé : 22 tests verts (75 assertions) après ajout tests fonctionnels
+Stripe checkout (stub service) + exigence auth. PHPStan niveau 4 (0 erreurs) stable. Couverture
+maintenant activée via Xdebug (Classes 64.86% / Méthodes 89.87% / Lignes 73.46%). Prochaine phase :
 resserrer la couverture sur logique métier (réduire poids tests purement réflexifs), monter Stan
 aux niveaux 5+, compléter scénarios Stripe (invoices success/failure, annulation, idempotence
 complète), introduire services métier & tests API bout‑à‑bout.
@@ -36,8 +36,8 @@ agrégations) encore à implémenter.
 
 ## 4. Qualité & Tests
 
-- Tests: 20 tests / 69 assertions (persistance, relations, transitions simples + test fonctionnel
-  Stripe). Couverture active via Xdebug: Classes 64.86% | Méthodes 89.87% | Lignes 66.96%.
+- Tests: 22 tests / 75 assertions (persistance, relations, transitions simples + tests fonctionnels
+  Stripe: auth requise + création session checkout stub). Couverture active via Xdebug: Classes 64.86% | Méthodes 89.87% | Lignes 73.46%.
 - Mutation testing (Infection): configuré (seuils 80/85) – pas encore exécuté sur un périmètre large
 - Checklist revue: `docs/REVIEW_CHECKLIST.md` (doit être utilisée dans chaque PR)
 - Analyse statique: PHPStan niveau 4 OK (0 erreurs). Nullabilité harmonisée en rendant certaines
@@ -72,12 +72,12 @@ Migration `Version20250903151723` générée et appliquée : colonnes *foreign k
 - Points à prévoir: rotation des clés, durées tokens, rate limiting, audit endpoints sensibles,
   intégration future d’un WAF ou reverse proxy.
 
-## 7. Stripe – État Intégration (mise à jour 16h25)
+## 7. Stripe – État Intégration (mise à jour 17h40)
 
 Implémenté :
 - Client `StripeClientFactory` (version API figée 2024-06-20)
-- Checkout abonnement (`/api/stripe/checkout/session/{id}`) + Billing Portal
-- Webhooks: subscription created/updated/deleted, invoice payment succeeded/failed
+- Checkout abonnement (`/api/stripe/checkout/session/{id}`) + Billing Portal (controller testés partiellement)
+- Webhooks: subscription created/updated/deleted, invoice payment succeeded/failed (tests à compléter)
 - Métadonnées user_id / plan_id propagées dans `subscription_data`
 - Création Subscription & Payment, historisation (SubscriptionHistory), logging (StripeWebhookLog)
 
@@ -86,6 +86,7 @@ Lacunes clés (inchangé + précisions) :
 - Status intermédiaires Stripe (incomplete, past_due, trialing) non mappés
 - Montants Payment en float (précision) – préférer int (cents)
 - Pas de test invoices (paiement réussi/échec) ni cancel
+-- Pas de test Billing Portal (à ajouter)
 - Pas d’endpoint d’annulation volontaire / upgrade plan
 - Pas de synchronisation auto plans ↔ prices Stripe
 - Handler public exposé directement (à restreindre en prod)
@@ -108,7 +109,7 @@ Priorité prochaine itération : idempotence (event.id) + tests invoices + migra
 
 ## 8. Prochaines Priorités (proposition sprint)
 
-1. Normaliser couverture (tests métier invoices / idempotence / annulation)
+1. Normaliser couverture (tests métier invoices / idempotence / annulation / billing portal)
 2. Monter PHPStan niveau 5→6 (collections, generics, règles doctrine supplémentaires)
 3. Migration montants Payment en int (cents) + adaptation entité & tests
 4. Services métier (SubscriptionService, PaymentService) + transitions complexes (upgrade/downgrade)
@@ -203,7 +204,7 @@ Pour rendre le code plus modulable:
 
 | KPI                          | Actuel (Xdebug) | Cible Phase 1 | Cible Phase 2                    |
 | ---------------------------- | -------------- | ------------- | -------------------------------- |
-| Couverture lignes            | 66.96%         | 70%           | 80%                              |
+| Couverture lignes            | 73.46%         | 75%           | 80%                              |
 | Couverture classes critiques | 64.86%         | 75%           | 90%                              |
 | Mutation Score (MSI)         | n/a            | 50%           | 80%                              |
 | Temps build CI               | n/a            | <5 min        | <8 min (avec mutation partielle) |
@@ -220,4 +221,4 @@ Pour rendre le code plus modulable:
 
 ---
 
-Document mis à jour le 3 septembre 2025 16h25.
+Document mis à jour le 3 septembre 2025 16h53.

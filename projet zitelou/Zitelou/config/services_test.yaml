@@ -1,0 +1,4 @@
+services:
+  App\Stripe\StripeClientFactory: '@App\Tests\Stub\TestStripeClientFactory'
+  App\Tests\Stub\TestStripeClientFactory:
+    public: true

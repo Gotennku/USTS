@@ -14,18 +14,6 @@ security:
             pattern: ^/(_(profiler|wdt)|css|images|js)/
             security: false
 
-        main:
-            lazy: true
-            provider: app_user_provider
-            custom_authenticator: App\Security\AppAuthenticator
-            logout:
-                path: app_logout
-                target: /
-            remember_me:
-                secret: '%kernel.secret%'
-                lifetime: 604800
-                path: /
-
         api_login:
             pattern: ^/api/login
             stateless: true
@@ -40,6 +28,18 @@ security:
             pattern: ^/api
             stateless: true
             jwt: ~
+
+        main:
+            lazy: true
+            provider: app_user_provider
+            custom_authenticator: App\Security\AppAuthenticator
+            logout:
+                path: app_logout
+                target: /
+            remember_me:
+                secret: '%kernel.secret%'
+                lifetime: 604800
+                path: /
 
     access_control:
         - {path: ^/api/login, roles: PUBLIC_ACCESS}

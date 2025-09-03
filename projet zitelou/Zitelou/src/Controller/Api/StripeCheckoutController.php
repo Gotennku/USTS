@@ -11,9 +11,11 @@ use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Throwable;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 #[Route('/api/stripe', name: 'stripe_')]
-class StripeCheckoutController
+
+class StripeCheckoutController extends AbstractController
 {
     public function __construct(
         private readonly StripeCheckoutService $checkout,
