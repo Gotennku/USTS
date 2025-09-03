@@ -1,0 +1,42 @@
+services:
+  php:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        INSTALL_XDEBUG: 1
+    container_name: zitelou-php
+    volumes:
+      - .:/var/www/html
+    working_dir: /var/www/html
+    depends_on:
+      - db
+    networks:
+      - symfony
+    environment:
+      XDEBUG_MODE: coverage,develop
+
+  db:
+    image: mariadb:10.11
+    container_name: mariadb_zitelou
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpass
+      MYSQL_DATABASE: my_app_db
+      MYSQL_USER: symfony
+      MYSQL_PASSWORD: symfopass
+    networks:
+      - symfony
+
+  adminer:
+    image: adminer
+    container_name: zitelou-adminer
+    restart: always
+    ports:
+      - "8080:8080"
+    networks:
+      - symfony
+
+networks:
+  symfony:
+    driver: bridge

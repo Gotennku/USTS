@@ -1,0 +1,14 @@
+# Ignorer les fichiers/dossiers locaux
+.git
+.gitignore
+node_modules
+vendor
+var
+.env
+.env.local
+Dockerfile
+README.md
+.idea
+.vscode
+composer.lock
+coverage
