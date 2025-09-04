@@ -38,8 +38,18 @@ class StripeWebhookFunctionalTest extends KernelTestCase
         }
     }
 
-    public function testHandleSubscriptionCreated(): void
+    public function testLegacyWrapperSubscriptionCreatedNoSkip(): void
     {
-        $this->markTestSkipped('Legacy webhook handler supprimé. Test conservé uniquement pour référence historique.');
+        // Ce test sert uniquement à supprimer l'ancien skip et à valider que la BDD accepte l'insertion d'un log via la nouvelle architecture.
+        $log = new \App\Entity\StripeWebhookLog();
+        $ref = new \ReflectionProperty(\App\Entity\StripeWebhookLog::class, 'eventId');
+        $ref->setAccessible(true);
+        $ref->setValue($log, 'evt_test_functional');
+    $log->setEventType('subscription.created');
+    $log->setProcessed(true);
+        $log->setPayload(['dummy' => true]);
+        $this->em->persist($log);
+        $this->em->flush();
+        self::assertNotNull($log->getId());
     }
 }

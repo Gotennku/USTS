@@ -21,11 +21,10 @@ class StripeCheckoutController extends AbstractController
 {
     public function __construct(
     private readonly CheckoutServiceInterface $checkout,
-    private readonly BillingPortalServiceInterface $portalService,
+        private readonly BillingPortalServiceInterface $portalService,
         private readonly EntityManagerInterface $em,
         private readonly TokenStorageInterface $tokens,
-    ) {
-    }
+    ) {}
 
     #[Route('/checkout/session/{id}', name: 'checkout_session', methods: ['POST'])]
     #[IsGranted('ROLE_USER')]
@@ -35,12 +34,8 @@ class StripeCheckoutController extends AbstractController
         if (!$plan) {
             return new JsonResponse(['error' => 'Plan introuvable'], 404);
         }
-        $token = $this->tokens->getToken();
-        if (!$token || !is_object($token->getUser())) {
-            return new JsonResponse(['error' => 'Utilisateur non authentifié'], 401);
-        }
-        /** @var \App\Entity\User $user */
-        $user = $token->getUser();
+    $user = $this->getUser(); // IsGranted garante authentification
+    \assert($user instanceof \App\Entity\User);
         $payload = json_decode($request->getContent() ?: '[]', true) ?? [];
         $success = $payload['success_url'] ?? 'https://example.com/success';
         $cancel = $payload['cancel_url'] ?? 'https://example.com/cancel';
@@ -61,12 +56,8 @@ class StripeCheckoutController extends AbstractController
     #[IsGranted('ROLE_USER')]
     public function portal(Request $request): JsonResponse
     {
-        $token = $this->tokens->getToken();
-        if (!$token || !is_object($token->getUser())) {
-            return new JsonResponse(['error' => 'Utilisateur non authentifié'], 401);
-        }
-        /** @var \App\Entity\User $user */
-        $user = $token->getUser();
+    $user = $this->getUser();
+    \assert($user instanceof \App\Entity\User);
         $payload = json_decode($request->getContent() ?: '[]', true) ?? [];
         $returnUrl = $payload['return_url'] ?? 'https://example.com/account';
         try {

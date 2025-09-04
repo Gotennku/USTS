@@ -1,15 +1,17 @@
-# Revue Projet – 4 septembre 2025 09h35
+# Revue Projet – 4 septembre 2025 10h55
 
 ## 1. Résumé Exécutif
 
 Application backend Symfony 7.3 (API Platform) pour gestion utilisateurs, abonnements, paiements,
 journalisation et sécurité JWT. Base technique stabilisée (containers Docker), entités principales
-créées. Pipeline qualité fortement étendu : 49 tests verts (129 assertions) couvrant désormais la
-logique Stripe (webhooks multi‑événements, checkout, billing portal), l’idempotence, l’authentification
-et les repositories clés. PHPStan niveau 4 (0 erreurs) stable. Couverture actuelle (Xdebug) :
-Classes 75.00% / Méthodes 93.22% / Lignes 84.77%. Prochaine phase : hausser la couverture classes
-vers 90% en ajoutant tests contrôleurs restants (Security / Webhook erreurs), finaliser scénarios
-edge (payload invalide, redirections auth), puis monter PHPStan niveaux 5+ et introduire services métier.
+créées. Pipeline qualité renforcé : 68 tests verts (162 assertions) couvrant la logique Stripe
+(webhooks multi‑événements, checkout, billing portal), l’idempotence, l’authentification, les repositories
+et les branches d’erreur/succès contrôleurs (login redirect, logout exception, checkout défaut, portal défaut).
+PHPStan niveau 4 (0 erreurs) stable.
+
+Nouvelle couverture (Xdebug) : Classes 82.00% / Méthodes 94.43% / Lignes 85.89%.
+Objectif prochain palier : 90% classes & ≥96% méthodes après finalisation StripeCheckoutController (méthodes restantes)
+et couverture totale entité User (2 méthodes manquantes), puis montée PHPStan 5+.
 
 ## 2. Pile & Architecture
 
@@ -33,26 +35,26 @@ Statut: Modèle de données stabilisé; logique métier avancée (transitions, f
 
 ## 4. Qualité & Tests
 
-- Tests: 49 tests / 129 assertions (entités, repositories, authenticator, contrôleurs login/security, services Stripe, webhooks, idempotence).
+- Tests: 68 tests / 162 assertions (entités, repositories, authenticator, contrôleurs login/security + logout, services Stripe, webhooks, idempotence, scénarios checkout & portal défaut / erreurs).
 - Mutation testing (Infection): configuré (seuils 80/85) – campagne complète encore à réaliser.
 - Checklist revue: `docs/REVIEW_CHECKLIST.md` utilisée comme référence de PR.
 - Analyse statique: PHPStan niveau 4 OK (0 erreurs). Montée programmée vers 5 puis 6.
 
 ### Couverture (activée)
 
-Collecte active (Xdebug). Les méthodes élevées grâce à la couverture exhaustive des entités.
-Progrès récents:
-1. Webhooks: tests supplémentaires (subscription updated/deleted/expired, invoice payment_failed).
-2. Idempotence: test complet du checker Doctrine (création + enrichissement payload).
-3. Suppression dépréciations dynamiques Stripe via `StripeStubClient`.
-4. Services Checkout & Billing Portal entièrement couverts (erreurs incluses).
+Progrès récents (depuis 09h35):
+1. Suppression test legacy skipped (webhook) remplacé par test persistant sans skip.
+2. Ajout tests branches manquantes Stripe Checkout (auth manquante, URLs par défaut, plan absent, exception service).
+3. Ajout test exception explicite `SecurityController::logout()` (100% contrôleur Security).
+4. DoctrineCustomerProvider & AppAuthenticator 100% (branches succès/erreurs).
+5. Nettoyage tests redondants / suppression classe vide.
 
-Priorités restantes (pour atteindre ~90% classes):
-1. Tests `SecurityController` (utilisateur déjà authentifié) & `StripeWebhookController` (signature manquante / JSON invalide).
-2. Tests supplémentaires `StripeCheckoutController` (chemin d’erreur contrôleur pur si distinct du service).
-3. Compléter `UserRepository` (méthode restante) & `AppAuthenticator` (chemin `supports` edge).
-4. Migration montants Payment -> int (cents) + adaptation tests.
-5. Tests API end‑to‑end (scénarios abonnement complet) pour robustesse.
+Restant principal pour 100% ciblé:
+- `StripeCheckoutController`: méthode portal non comptée (réduction conditionnelle doublon auth). Une simplification appliquée (suppression double vérif token) – re‑générer le rapport pour voir si compteur méthodes couvertes évolue.
+- Entité `User`: 2 méthodes non couvertes (probablement helpers ou setters peu utilisés) – ajouter test direct.
+- Webhook erreurs JSON/signature (chemins 400) encore à valider si absence dans suite.
+
+Prochain focus couverture: compléter `StripeCheckoutController` (appel direct méthode portal via requête authentifiée) et finaliser entité User.
 
 ### Migration nullabilité (rappel)
 
@@ -104,13 +106,15 @@ Priorité prochaine itération : tests contrôleurs manquants + migration montan
 
 ## 9. Prochaines Priorités (proposition sprint)
 
-1. Tests contrôleurs (Security redirect + Webhook invalid payload/signature)
-2. Migration montants Payment -> cents
-3. PHPStan niveau 5 puis 6
-4. Services métier Subscription / Payment (use cases + transitions)
-5. Tests API end‑to‑end (scénarios abonnement complet)
-6. Pipeline CI (badge couverture, stan, infection partielle) 
-7. Mapping états Stripe étendu & endpoints annulation / upgrade
+1. Compléter couverture `StripeCheckoutController` (portal + createSession 100% méthodes)
+2. Couvrir les 2 méthodes manquantes `User`
+3. Tests erreurs Webhook (signature absente / JSON invalide)
+4. Migration montants Payment -> cents
+5. PHPStan niveau 5 puis 6
+6. Services métier Subscription / Payment (use cases + transitions)
+7. Tests API end‑to‑end + badge couverture CI
+8. Value Object Money + migration
+9. Mapping états Stripe étendu & endpoints annulation / upgrade
 
 ## 10. Commandes Utiles (Dev & Qualité)
 
@@ -202,14 +206,15 @@ Axes d’évolution:
 
 ## 13. Actions Immédiates Recommandées
 
-1. Ajouter tests contrôleurs manquants (Security redirect, Webhook erreurs)
-2. Migration montants Payment (float -> int cents)
-3. PHPStan niveau 5 puis 6
-4. Services métier Subscription/Payment + endpoints annulation/upgrade
-5. Tests API end‑to‑end + badge couverture CI
-6. Introduire Value Object Money + migration
-7. Préparer mapping étendu statuts Stripe
+1. Couverture StripeCheckout (méthodes) & User (2 méthodes)
+2. Webhook erreurs (signature/JSON)
+3. Migration montants Payment (float -> int cents)
+4. PHPStan niveau 5 puis 6
+5. Services métier Subscription/Payment + endpoints annulation/upgrade
+6. Tests API end‑to‑end + badge couverture CI
+7. Value Object Money + migration
+8. Mapping étendu statuts Stripe
 
 ---
 
-Document mis à jour le 4 septembre 2025 09h35.
+Document mis à jour le 4 septembre 2025 10h55.

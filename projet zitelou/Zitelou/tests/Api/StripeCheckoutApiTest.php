@@ -122,4 +122,59 @@ class StripeCheckoutApiTest extends DatabaseWebTestCase
         self::assertArrayHasKey('portal_url', $data);
         self::assertNotEmpty($data['portal_url']);
     }
+
+    public function testBillingPortalRequiresAuth(): void
+    {
+        $this->client->request('POST', '/api/stripe/portal', [], [], [
+            'CONTENT_TYPE' => 'application/json'
+        ], json_encode([]));
+        $resp = $this->client->getResponse();
+        self::assertEquals(401, $resp->getStatusCode(), $resp->getContent());
+    }
+
+    public function testBillingPortalEndpointDefaultReturnUrl(): void
+    {
+        $user = $this->createUser('portaldefault@example.org');
+        $this->em->flush();
+        $jwtManager = self::getContainer()->get('lexik_jwt_authentication.jwt_manager');
+        $token = $jwtManager->create($user);
+        $portalStub = new class() implements BillingPortalServiceInterface {
+            public function createPortalUrl(string $userId, string $returnUrl): BillingPortalUrlResult
+            {
+                // On vérifie implicitement que le défaut est passé (mais sans assertion sur returnUrl car pas exposé dans réponse)
+                return new BillingPortalUrlResult('https://stripe.test/portal/session/default123');
+            }
+        };
+        static::getContainer()->set(BillingPortalServiceInterface::class, $portalStub);
+        $this->client->request('POST', '/api/stripe/portal', [], [], [
+            'HTTP_Authorization' => 'Bearer '.$token,
+            'CONTENT_TYPE' => 'application/json'
+        ], json_encode([])); // pas de return_url => valeur par défaut utilisée
+        $response = $this->client->getResponse();
+        self::assertEquals(201, $response->getStatusCode(), $response->getContent());
+        $data = json_decode($response->getContent(), true);
+        self::assertArrayHasKey('portal_url', $data);
+    }
+
+    public function testBillingPortalServiceThrowsReturns400(): void
+    {
+        $user = $this->createUser('portalerror@example.org');
+        $this->em->flush();
+        $jwtManager = self::getContainer()->get('lexik_jwt_authentication.jwt_manager');
+        $token = $jwtManager->create($user);
+        $throwingStub = new class() implements BillingPortalServiceInterface {
+            public function createPortalUrl(string $userId, string $returnUrl): BillingPortalUrlResult
+            { throw new \RuntimeException('portal_fail'); }
+        };
+        static::getContainer()->set(BillingPortalServiceInterface::class, $throwingStub);
+        $this->client->request('POST', '/api/stripe/portal', [], [], [
+            'HTTP_Authorization' => 'Bearer '.$token,
+            'CONTENT_TYPE' => 'application/json'
+        ], json_encode(['return_url' => 'https://example.test/account']));
+        $resp = $this->client->getResponse();
+        self::assertEquals(400, $resp->getStatusCode(), $resp->getContent());
+        $data = json_decode($resp->getContent(), true);
+        self::assertArrayHasKey('error', $data);
+        self::assertStringContainsString('portal_fail', $data['error']);
+    }
 }

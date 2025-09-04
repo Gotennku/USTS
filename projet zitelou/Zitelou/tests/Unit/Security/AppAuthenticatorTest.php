@@ -85,11 +85,12 @@ class AppAuthenticatorTest extends TestCase
 
     public function testOnAuthenticationSuccessRedirectsAdmin(): void
     {
-        $authenticator = $this->createAuthenticator();
-        $request = Request::create('/login');
-        $request->setSession(new \Symfony\Component\HttpFoundation\Session\Session(new \Symfony\Component\HttpFoundation\Session\Storage\MockArraySessionStorage()));
-        $response = $authenticator->onAuthenticationSuccess($request, $this->token(['ROLE_ADMIN']), 'main');
-        $this->assertSame('/admin_dashboard', $response->headers->get('Location'));
+    $authenticator = $this->createAuthenticator();
+    $request = Request::create('/login');
+    $request->setSession(new \Symfony\Component\HttpFoundation\Session\Session(new \Symfony\Component\HttpFoundation\Session\Storage\MockArraySessionStorage()));
+    $response = $authenticator->onAuthenticationSuccess($request, $this->token(['ROLE_ADMIN']), 'main');
+    // Comme la route admin_dashboard n'existe pas dans le test isolé, on vérifie simplement le pattern attendu
+    $this->assertSame('/admin_dashboard', $response->headers->get('Location'));
     }
 
     public function testOnAuthenticationSuccessRedirectsUser(): void
@@ -99,6 +100,17 @@ class AppAuthenticatorTest extends TestCase
         $request->setSession(new \Symfony\Component\HttpFoundation\Session\Session(new \Symfony\Component\HttpFoundation\Session\Storage\MockArraySessionStorage()));
     $response = $authenticator->onAuthenticationSuccess($request, $this->token(['ROLE_USER']), 'main');
         $this->assertSame('/app_home', $response->headers->get('Location'));
+    }
+
+    public function testOnAuthenticationSuccessRedirectsToStoredTargetPath(): void
+    {
+        $authenticator = $this->createAuthenticator();
+        $request = Request::create('/login');
+        $session = new \Symfony\Component\HttpFoundation\Session\Session(new \Symfony\Component\HttpFoundation\Session\Storage\MockArraySessionStorage());
+        $session->set('_security.main.target_path', '/protected-area');
+        $request->setSession($session);
+        $response = $authenticator->onAuthenticationSuccess($request, $this->token(['ROLE_USER']), 'main');
+        $this->assertSame('/protected-area', $response->headers->get('Location'));
     }
 
     public function testGetLoginUrl(): void
