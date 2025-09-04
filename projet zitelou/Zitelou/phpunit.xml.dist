@@ -10,6 +10,10 @@
         <!-- Utiliser la même URL mais suffix test défini dans doctrine when@test -->
         <env name="APP_ENV" value="test"/>
     <env name="DATABASE_URL" value="sqlite:///%kernel.project_dir%/var/test.db"/>
+    <!-- Override JWT keys with readable copies for tests -->
+    <env name="JWT_SECRET_KEY" value="/tmp/private.test.pem"/>
+    <env name="JWT_PUBLIC_KEY" value="/tmp/public.test.pem"/>
+    <env name="JWT_PASSPHRASE" value=""/>
     </php>
     <testsuites>
         <testsuite name="Project Test Suite">

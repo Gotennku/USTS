@@ -2,9 +2,10 @@
 
 namespace App\Controller\Api;
 
-use App\Entity\StripeWebhookLog;
-use App\Service\Stripe\StripeWebhookHandler;
-use Doctrine\ORM\EntityManagerInterface;
+use App\StripeIntegration\Webhook\WebhookEventDispatcher;
+use App\Stripe\StripeClientFactory;
+use Stripe\Event;
+use Stripe\Webhook as StripeWebhook;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -14,30 +15,28 @@ use Throwable;
 class StripeWebhookController
 {
     public function __construct(
-        private readonly StripeWebhookHandler $handler,
-        private readonly EntityManagerInterface $em
-    ) {
-    }
+        private readonly StripeClientFactory $factory,
+        private readonly WebhookEventDispatcher $dispatcher,
+    ) {}
 
     public function __invoke(Request $request): Response
     {
         $payload = $request->getContent();
         $sig = $request->headers->get('stripe-signature');
 
+        $secret = $this->factory->getWebhookSecret();
         try {
-            $event = $this->handler->constructEvent($payload, $sig ?? '');
-        } catch (Throwable $e) {
+            if ($secret) {
+                $event = StripeWebhook::constructEvent($payload, $sig ?? '', $secret);
+            } else {
+                $event = Event::constructFrom(json_decode($payload, true) ?? []);
+            }
+        } catch (Throwable) {
             return new Response('Invalid payload', Response::HTTP_BAD_REQUEST);
         }
 
-        // Log brut
-        $log = (new StripeWebhookLog())
-            ->setEventType($event->type)
-            ->setPayload(json_decode($payload, true) ?? []);
-        $this->em->persist($log);
-
-        $this->handler->handle($event, $log);
-        $this->em->flush();
+    // Délègue totalement à la couche dispatcher + idempotence (un seul endroit crée le log)
+    $this->dispatcher->dispatch($event);
 
         return new Response('ok');
     }

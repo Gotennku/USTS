@@ -26,8 +26,8 @@ services:
             $secretKey: '%env(STRIPE_SECRET_KEY)%'
             $webhookSecret: '%env(default::STRIPE_WEBHOOK_SECRET)%'
 
-    # Rendre public pour tests fonctionnels (peut être déplacé dans services_test.yaml)
-    App\Service\Stripe\StripeWebhookHandler:
+    # Contrôleur webhook rendu public pour tests fonctionnels
+    App\Controller\Api\StripeWebhookController:
         public: true
 
     # Adapters StripeIntegration
@@ -40,3 +40,14 @@ services:
 
     # Checkout service alias (interface)
     App\StripeIntegration\Checkout\CheckoutServiceInterface: '@App\StripeIntegration\Checkout\CheckoutService'
+    App\StripeIntegration\Checkout\BillingPortalServiceInterface: '@App\StripeIntegration\Checkout\BillingPortalService'
+
+    # Webhook refactor services
+    App\StripeIntegration\Webhook\Handler\SubscriptionEventHandlerInterface: '@App\StripeIntegration\Webhook\Handler\SubscriptionEventHandler'
+    App\StripeIntegration\Webhook\Handler\InvoiceEventHandlerInterface: '@App\StripeIntegration\Webhook\Handler\InvoiceEventHandler'
+    App\StripeIntegration\Webhook\Idempotency\EventIdempotencyCheckerInterface: '@App\StripeIntegration\Webhook\Idempotency\DoctrineEventIdempotencyChecker'
+
+    App\StripeIntegration\Webhook\Handler\SubscriptionEventHandler: ~
+    App\StripeIntegration\Webhook\Handler\InvoiceEventHandler: ~
+    App\StripeIntegration\Webhook\Idempotency\DoctrineEventIdempotencyChecker: ~
+    App\StripeIntegration\Webhook\WebhookEventDispatcher: ~

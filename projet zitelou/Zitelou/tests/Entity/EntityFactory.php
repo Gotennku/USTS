@@ -61,7 +61,11 @@ class EntityFactory
     public static function stripeWebhookLog(Subscription $s, string $event = 'invoice.paid'): StripeWebhookLog
     {
         $l = new StripeWebhookLog();
-        $l->setSubscription($s)->setEventType($event)->setPayload(['test' => true])->setProcessed(false);
+                $l->setSubscription($s)
+                    ->setEventType($event)
+                    ->setEventId('evt_factory_'.uniqid())
+                    ->setPayload(['test' => true])
+                    ->setProcessed(false);
         return $l;
     }
 

@@ -5,6 +5,7 @@ namespace App\Controller\Api;
 use App\Entity\SubscriptionPlan;
 use App\StripeIntegration\Checkout\CheckoutServiceInterface;
 use App\StripeIntegration\Checkout\CheckoutSessionInput;
+use App\StripeIntegration\Checkout\BillingPortalServiceInterface;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -19,7 +20,8 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 class StripeCheckoutController extends AbstractController
 {
     public function __construct(
-        private readonly CheckoutServiceInterface $checkout,
+    private readonly CheckoutServiceInterface $checkout,
+    private readonly BillingPortalServiceInterface $portalService,
         private readonly EntityManagerInterface $em,
         private readonly TokenStorageInterface $tokens,
     ) {
@@ -67,7 +69,11 @@ class StripeCheckoutController extends AbstractController
         $user = $token->getUser();
         $payload = json_decode($request->getContent() ?: '[]', true) ?? [];
         $returnUrl = $payload['return_url'] ?? 'https://example.com/account';
-    // TODO: implémenter via nouveau service (BillingPortalService) lors de l'extraction complète.
-    return new JsonResponse(['error' => 'Portal non encore migré'], 501);
+        try {
+            $result = $this->portalService->createPortalUrl((string)$user->getId(), $returnUrl);
+            return new JsonResponse(['portal_url' => $result->url], 201);
+        } catch (\Throwable $e) {
+            return new JsonResponse(['error' => $e->getMessage()], 400);
+        }
     }
 }

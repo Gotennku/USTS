@@ -19,6 +19,9 @@ class StripeWebhookLog
     #[ORM\Column(length: 100)]
     private string $eventType;
 
+    #[ORM\Column(length: 150, unique: true)]
+    private string $eventId;
+
     #[ORM\Column(type: 'json')]
     private array $payload = [];
 
@@ -53,6 +56,15 @@ class StripeWebhookLog
     public function setEventType(string $e): self
     {
         $this->eventType = $e;
+        return $this;
+    }
+    public function getEventId(): string
+    {
+        return $this->eventId;
+    }
+    public function setEventId(string $id): self
+    {
+        $this->eventId = $id;
         return $this;
     }
     public function getPayload(): array

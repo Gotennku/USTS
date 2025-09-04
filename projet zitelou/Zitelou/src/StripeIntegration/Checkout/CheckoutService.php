@@ -5,7 +5,7 @@ namespace App\StripeIntegration\Checkout;
 use App\Stripe\StripeClientFactory;
 use App\StripeIntegration\Port\CustomerProviderInterface;
 use App\StripeIntegration\Port\PlanPriceProviderInterface;
-use RuntimeException;
+use App\StripeIntegration\Exception\PriceNotConfiguredException;
 
 class CheckoutService implements CheckoutServiceInterface
 {
@@ -19,7 +19,7 @@ class CheckoutService implements CheckoutServiceInterface
     {
         $priceId = $this->plans->getPriceId($input->planId);
         if (!$priceId) {
-            throw new RuntimeException('Plan non lié à un price Stripe');
+            throw new PriceNotConfiguredException('Plan non lié à un price Stripe');
         }
         $client = $this->clientFactory->create();
         $customerId = $this->customers->ensureCustomer($input->userId, ''); // email géré côté adapter
