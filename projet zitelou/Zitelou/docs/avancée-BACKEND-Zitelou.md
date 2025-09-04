@@ -1,15 +1,15 @@
-# Revue Projet – 3 septembre 2025 17h56
+# Revue Projet – 4 septembre 2025 08h10
 
 ## 1. Résumé Exécutif
 
 Application backend Symfony 7.3 (API Platform) pour gestion utilisateurs, abonnements, paiements,
-journalisation et sécurité JWT. Base technique stabilisée (containers Docker), premières entités
-créées. Pipeline qualité renforcé : 22 tests verts (75 assertions) après ajout tests fonctionnels
-Stripe checkout (stub service) + exigence auth. PHPStan niveau 4 (0 erreurs) stable. Couverture
-maintenant activée via Xdebug (Classes 64.86% / Méthodes 89.87% / Lignes 73.46%). Prochaine phase :
-resserrer la couverture sur logique métier (réduire poids tests purement réflexifs), monter Stan
-aux niveaux 5+, compléter scénarios Stripe (invoices success/failure, annulation, idempotence
-complète), introduire services métier & tests API bout‑à‑bout.
+journalisation et sécurité JWT. Base technique stabilisée (containers Docker). Nouvelle étape :
+extraction en cours d’un module Stripe découplé (`StripeIntegration`). Suite derniers commits :
+24 tests verts (77 assertions) – ajout test unitaire `CheckoutServiceTest` + adaptation tests API.
+PHPStan niveau 4 (0 erreurs) toujours stable. Couverture via Xdebug actualisée : Classes 61.90% /
+Méthodes 90.03% / Lignes 78.12%. Baisse (classes) due au périmètre total (ancien service checkout
+à supprimer) mais lignes en hausse (meilleure densité logique testée). Prochaine phase : migrer
+Billing Portal dans le module, refactor webhooks en ports/adapters, renforcer idempotence.
 
 ## 2. Pile & Architecture
 
@@ -36,23 +36,22 @@ agrégations) encore à implémenter.
 
 ## 4. Qualité & Tests
 
-- Tests: 22 tests / 75 assertions (persistance, relations, transitions simples + tests fonctionnels
-  Stripe: auth requise + création session checkout stub). Couverture active via Xdebug: Classes 64.86% | Méthodes 89.87% | Lignes 73.46%.
+- Tests: 24 tests / 77 assertions (persistance, relations, tests fonctionnels Stripe checkout & portail placeholder, test unitaire service checkout).
+  Couverture Xdebug: Classes 61.90% | Méthodes 90.03% | Lignes 78.12%.
 - Mutation testing (Infection): configuré (seuils 80/85) – pas encore exécuté sur un périmètre large
 - Checklist revue: `docs/REVIEW_CHECKLIST.md` (doit être utilisée dans chaque PR)
 - Analyse statique: PHPStan niveau 4 OK (0 erreurs). Nullabilité harmonisée en rendant certaines
   colonnes DB nullable (à confirmer via migration) + ajout generics Collection. Cible prochaine:
   niveaux 5→6 puis niveau max avec éventuellement baseline si nécessaire.
 
-### Couverture (activée)
+### Couverture (focus actuel)
 
-Collecte active (Xdebug). Le niveau actuel inclut encore une part de tests réflexifs qui gonflent
-les métriques méthodes. Priorités:
-1. Ajouter tests comportement pour invoices (succès/échec) & annulation subscription.
-2. Introduire tests idempotence (replay d'event stripe).
-3. Migrer montants Payment -> int (cents) puis ajuster tests.
-4. Supprimer / réduire tests purement getters/setters si présents pour refléter valeur réelle.
-5. Ajouter tests API bout‑à‑bout (statistiques couverture lignes plus représentative usages).
+Points forts: Entités centrales largement couvertes. Nouveau service `CheckoutService` partiellement (manque scénario d’erreur plan sans price).
+Points faibles ciblés:
+1. `StripeWebhookHandler` (27.78% lignes) – besoin scénarios update / cancel / invoices.
+2. Adapters StripeIntegration (tests unitaires manquants).
+3. Chemins d’erreur (price absent, customer port échec) non testés.
+Prochaines actions couverture: tests négatifs checkout, scénarios webhook supplémentaires, futur BillingPortalService testé.
 
 ### Migration nullabilité (17h15)
 
@@ -72,24 +71,26 @@ Migration `Version20250903151723` générée et appliquée : colonnes *foreign k
 - Points à prévoir: rotation des clés, durées tokens, rate limiting, audit endpoints sensibles,
   intégration future d’un WAF ou reverse proxy.
 
-## 7. Stripe – État Intégration (mise à jour 17h56)
+## 7. Stripe – État Intégration (mise à jour 4 sept 08h10)
 
 Implémenté :
 - Client `StripeClientFactory` (version API figée 2024-06-20)
-- Checkout abonnement (`/api/stripe/checkout/session/{id}`) + Billing Portal (controller testés partiellement)
-- Webhooks: subscription created/updated/deleted, invoice payment succeeded/failed (tests à compléter)
+- Module `StripeIntegration` (ports: customer, plan price; DTOs checkout; service `CheckoutService` injecté contrôleur)
+- Endpoint checkout migré vers service modulaire
+- Placeholder Billing Portal (501) en attente `BillingPortalService`
+- Webhooks: subscription created/updated/deleted, invoice payment succeeded/failed (logiciel présent, couverture partielle)
 - Métadonnées user_id / plan_id propagées dans `subscription_data`
 - Création Subscription & Payment, historisation (SubscriptionHistory), logging (StripeWebhookLog)
 
-Lacunes clés (inchangé + précisions) :
-- Idempotence par event.id absente (risque de duplications si retry Stripe)
-- Status intermédiaires Stripe (incomplete, past_due, trialing) non mappés
-- Montants Payment en float (précision) – préférer int (cents)
-- Pas de test invoices (paiement réussi/échec) ni cancel
--- Pas de test Billing Portal (à ajouter)
-- Pas d’endpoint d’annulation volontaire / upgrade plan
-- Pas de synchronisation auto plans ↔ prices Stripe
-- Handler public exposé directement (à restreindre en prod)
+Lacunes clés actuelles :
+- Idempotence event.id non implémentée (risque duplication)
+- Billing Portal non migré (501)
+- Webhook coverage faible (scénarios update/cancel/invoices non testés)
+- Montants Payment en float (doit migrer vers int cents)
+- Absence SubscriptionPersister (port défini mais pas implémenté)
+- Pas de tests négatifs checkout / portal
+- Pas d’endpoint cancel / upgrade plan
+- Pas de mapping états intermédiaires (incomplete, past_due, trialing)
 
 Priorité prochaine itération : idempotence (event.id) + tests invoices + migration montant en cents.
 
@@ -107,15 +108,18 @@ Priorité prochaine itération : idempotence (event.id) + tests invoices + migra
 | Xdebug actif par défaut        | Performance              | Faible | Basculer via variable ENV                           | Multi-stage build prod        |
 | Manque migrations validées CI  | Drift schéma             | Moyen  | Ajouter job `doctrine:migrations:migrate --dry-run` | Validation auto pré-merge     |
 
-## 8. Prochaines Priorités (proposition sprint)
+## 8. Prochaines Priorités (révisé)
 
-1. Normaliser couverture (tests métier invoices / idempotence / annulation / billing portal)
-2. Monter PHPStan niveau 5→6 (collections, generics, règles doctrine supplémentaires)
-3. Migration montants Payment en int (cents) + adaptation entité & tests
-4. Services métier (SubscriptionService, PaymentService) + transitions complexes (upgrade/downgrade)
-5. Tests API (CRUD + scénarios abonnement end-to-end)
-6. Pipeline CI (tests + stan + couverture HTML + badge) puis mutation progressive
-7. Événements domaine + audit automatique / durcir sécurité (CORS, headers, rotation JWT)
+1. Migrer Billing Portal (nouveau `BillingPortalService` + tests API) & supprimer ancien service legacy.
+2. Idempotence webhooks (stockage event_id unique) + tests replay.
+3. Implémenter `SubscriptionPersisterInterface` + refactor `StripeWebhookHandler` en handlers spécialisés.
+4. Migration montant Payment float -> int (cents) + adaptation entité/tests & Value Object Money futur.
+5. Étendre couverture: scénarios webhook (update, cancel, invoices success/fail), tests négatifs checkout.
+6. Monter PHPStan vers niveau 5 puis 6 (ajout règles doctrine, generics collections).
+7. CI: ajout étapes phpunit (couverture), phpstan, futur infection ciblée.
+8. Domain services (SubscriptionService, PaymentService) + transitions upgrade/downgrade.
+9. Mapping états Stripe intermédiaires (incomplete, past_due, trialing) -> SubscriptionStatus.
+10. Endpoint cancel / upgrade plan.
 
 ## 9. Commandes Utiles (Dev & Qualité)
 
@@ -221,4 +225,4 @@ Pour rendre le code plus modulable:
 
 ---
 
-Document mis à jour le 3 septembre 2025 17h56.
+Document mis à jour le 4 septembre 2025 08h10.
