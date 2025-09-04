@@ -3,7 +3,8 @@
 namespace App\Controller\Api;
 
 use App\Entity\SubscriptionPlan;
-use App\Service\Stripe\StripeCheckoutService;
+use App\StripeIntegration\Checkout\CheckoutServiceInterface;
+use App\StripeIntegration\Checkout\CheckoutSessionInput;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -18,7 +19,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 class StripeCheckoutController extends AbstractController
 {
     public function __construct(
-        private readonly StripeCheckoutService $checkout,
+        private readonly CheckoutServiceInterface $checkout,
         private readonly EntityManagerInterface $em,
         private readonly TokenStorageInterface $tokens,
     ) {
@@ -42,8 +43,13 @@ class StripeCheckoutController extends AbstractController
         $success = $payload['success_url'] ?? 'https://example.com/success';
         $cancel = $payload['cancel_url'] ?? 'https://example.com/cancel';
         try {
-            $url = $this->checkout->createSubscriptionSession($user, $plan, $success, $cancel);
-            return new JsonResponse(['checkout_url' => $url], 201);
+            $result = $this->checkout->createSubscriptionCheckout(new CheckoutSessionInput(
+                (string)$user->getId(),
+                (string)$plan->getId(),
+                $success,
+                $cancel
+            ));
+            return new JsonResponse(['checkout_url' => $result->url], 201);
         } catch (Throwable $e) {
             return new JsonResponse(['error' => $e->getMessage()], 400);
         }
@@ -61,11 +67,7 @@ class StripeCheckoutController extends AbstractController
         $user = $token->getUser();
         $payload = json_decode($request->getContent() ?: '[]', true) ?? [];
         $returnUrl = $payload['return_url'] ?? 'https://example.com/account';
-        try {
-            $url = $this->checkout->createBillingPortalUrl($user, $returnUrl);
-            return new JsonResponse(['portal_url' => $url]);
-        } catch (Throwable $e) {
-            return new JsonResponse(['error' => $e->getMessage()], 400);
-        }
+    // TODO: implémenter via nouveau service (BillingPortalService) lors de l'extraction complète.
+    return new JsonResponse(['error' => 'Portal non encore migré'], 501);
     }
 }

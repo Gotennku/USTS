@@ -4,8 +4,10 @@ namespace App\Tests\Api;
 
 use App\Entity\SubscriptionPlan;
 use App\Entity\User;
-use Doctrine\ORM\EntityManagerInterface;
 use App\Tests\Api\DatabaseWebTestCase;
+use App\StripeIntegration\Checkout\CheckoutServiceInterface;
+use App\StripeIntegration\Checkout\CheckoutSessionInput;
+use App\StripeIntegration\Checkout\CheckoutSessionResult;
 use Symfony\Component\HttpFoundation\Response;
 
 class StripeCheckoutApiTest extends DatabaseWebTestCase
@@ -47,14 +49,14 @@ class StripeCheckoutApiTest extends DatabaseWebTestCase
         $user = $this->createUser();
         $plan = $this->createPlan();
         $this->em->flush();
-        // Stub du service Stripe pour éviter appel réel API
-        $stub = new class() extends \App\Service\Stripe\StripeCheckoutService {
-            public function __construct() { /* pas de dépendances pour le stub */ }
-            public function ensureCustomer(\App\Entity\User $user): string { return 'cus_test'; }
-            public function createSubscriptionSession($user, $plan, string $success, string $cancel): string { return 'https://stripe.test/checkout/session/fake123'; }
-            public function createBillingPortalUrl($user, string $returnUrl): string { return 'https://stripe.test/portal/session/fake123'; }
+        // Stub du nouveau service CheckoutServiceInterface
+        $stub = new class() implements CheckoutServiceInterface {
+            public function createSubscriptionCheckout(CheckoutSessionInput $input): CheckoutSessionResult
+            {
+                return new CheckoutSessionResult('https://stripe.test/checkout/session/fake123');
+            }
         };
-        static::getContainer()->set(\App\Service\Stripe\StripeCheckoutService::class, $stub);
+        static::getContainer()->set(CheckoutServiceInterface::class, $stub);
         $jwtManager = self::getContainer()->get('lexik_jwt_authentication.jwt_manager');
         $token = $jwtManager->create($user);
         $this->client->request('POST', '/api/stripe/checkout/session/'.$plan->getId(), [], [], [
@@ -70,5 +72,19 @@ class StripeCheckoutApiTest extends DatabaseWebTestCase
         $data = json_decode($response->getContent(), true);
         self::assertArrayHasKey('checkout_url', $data);
         self::assertNotEmpty($data['checkout_url']);
+    }
+
+    public function testBillingPortalNotImplementedYet(): void
+    {
+        $user = $this->createUser('portal@example.org');
+        $this->em->flush();
+        $jwtManager = self::getContainer()->get('lexik_jwt_authentication.jwt_manager');
+        $token = $jwtManager->create($user);
+        $this->client->request('POST', '/api/stripe/portal', [], [], [
+            'HTTP_Authorization' => 'Bearer '.$token,
+            'CONTENT_TYPE' => 'application/json'
+        ], json_encode(['return_url' => 'https://example.test/account']));
+        $response = $this->client->getResponse();
+        self::assertEquals(501, $response->getStatusCode(), $response->getContent());
     }
 }

@@ -29,3 +29,14 @@ services:
     # Rendre public pour tests fonctionnels (peut être déplacé dans services_test.yaml)
     App\Service\Stripe\StripeWebhookHandler:
         public: true
+
+    # Adapters StripeIntegration
+    App\StripeIntegration\Adapter\DoctrineCustomerProvider: ~
+    App\StripeIntegration\Adapter\DoctrinePlanPriceProvider: ~
+
+    # Aliases ports -> impl
+    App\StripeIntegration\Port\CustomerProviderInterface: '@App\StripeIntegration\Adapter\DoctrineCustomerProvider'
+    App\StripeIntegration\Port\PlanPriceProviderInterface: '@App\StripeIntegration\Adapter\DoctrinePlanPriceProvider'
+
+    # Checkout service alias (interface)
+    App\StripeIntegration\Checkout\CheckoutServiceInterface: '@App\StripeIntegration\Checkout\CheckoutService'
