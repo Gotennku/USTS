@@ -1,4 +1,4 @@
-# Revue Projet – 4 septembre 2025 10h55
+# Revue Projet – 4 septembre 2025 12h51
 
 ## 1. Résumé Exécutif
 
@@ -217,4 +217,4 @@ Axes d’évolution:
 
 ---
 
-Document mis à jour le 4 septembre 2025 10h55.
+Document mis à jour le 4 septembre 2025 12h51.
